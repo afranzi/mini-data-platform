@@ -1,3 +1,7 @@
+provider "minikube" {
+  kubernetes_version = "v1.29.2"
+}
+
 module "cluster" {
   source = "../modules/k8s/minicluster"
   name   = "data"

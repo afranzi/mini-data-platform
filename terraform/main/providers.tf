@@ -24,10 +24,6 @@ terraform {
   }
 }
 
-provider "minikube" {
-  kubernetes_version = "v1.29.2"
-}
-
 terraform {
   backend "local" {
     path = "/Users/afranzi-tf/Projects/mini-data-platform/terraform/terraform.tfstate"

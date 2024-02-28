@@ -75,6 +75,7 @@ airflow:
     podDisruptionBudget:
       enabled: true
       maxUnavailable: "20%"
+      apiVersion:
     ## configs for the log-cleanup sidecar of the worker Pods
     ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/monitoring/log-cleanup.md
     logCleanup:

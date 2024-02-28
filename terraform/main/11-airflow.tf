@@ -1,6 +1,6 @@
 locals {
   namespace = "data"
-  helm_repo = "https://github.com/argoproj/argocd-example-apps.git"
+  helm_repo = "https://github.com/afranzi/mini-data-platform.git"
 }
 
 module "project" {
