@@ -1,0 +1,11 @@
+apiVersion: v1
+name: airflow
+description: Universal Ranking Algorithm for Natural language Archive and Index
+maintainers:
+  - name: Albert Franzi
+version: 8.6.1
+appVersion: 2.8.2
+dependencies:
+  - name: airflow # https://artifacthub.io/packages/helm/airflow-helm/airflow
+    version: 8.6.1 # 1.6.0
+    repository: https://airflow-helm.github.io/charts #https://airflow.apache.org

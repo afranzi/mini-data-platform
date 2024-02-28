@@ -1,0 +1,126 @@
+airflow:
+  # https://airflow.apache.org/docs/helm-chart/stable/index.html#installing-the-chart-with-argocd
+  createUserJob:
+    useHelmHooks: false
+  migrateDatabaseJob:
+    useHelmHooks: false
+
+  airflow:
+    image:
+      repository: apache/airflow
+      tag: 2.8.2-python3.10 # https://hub.docker.com/r/apache/airflow/tags
+    executor: CeleryExecutor
+    config:
+      ### [core]
+      AIRFLOW__CORE__CHECK_SLAS: 'False'
+      AIRFLOW__CORE__MAX_ACTIVE_RUNS_PER_DAG: 1
+      AIRFLOW__CORE__MIN_SERIALIZED_DAG_UPDATE_INTERVAL: 150
+
+      ### [logging]
+      AIRFLOW__LOGGING__REMOTE_LOGGING: 'False' #ToDo: enable
+
+      ### [webserver]
+      AIRFLOW__WEBSERVER__BASE_URL: https://airflow.data
+      AIRFLOW__WEBSERVER__HIDE_PAUSED_DAGS_BY_DEFAULT: 'True'
+      AIRFLOW__WEBSERVER__ENABLE_PROXY_FIX: 'True'
+      AIRFLOW__WEBSERVER__EXPOSE_CONFIG: 'False'
+      AIRFLOW__WEBSERVER__AUTHENTICATE: 'False'
+
+      ### [api]
+      AIRFLOW__API__AUTH_BACKENDS: airflow.api.auth.backend.basic_auth
+
+      ### [database]
+      AIRFLOW__DATABASE__LOAD_DEFAULT_CONNECTIONS: 'False'
+
+  dags:
+    gitSync:
+      enabled: true
+      repo: "https://github.com/afranzi/mini-data-platform.git"
+      repoSubPath: "airflow"
+      branch: main
+      revision: HEAD
+      syncWait: 60
+      resources:
+        requests:
+          cpu: "50m"
+          memory: "64Mi"
+
+  ingress:
+    enabled: true
+    apiVersion: networking.k8s.io/v1
+    web:
+      host: "airflow.data"
+      ingressClassName: "nginx"
+  postgresql:
+    enabled: true
+  scheduler:
+    resources:
+      limits:
+        cpu: "1800m"
+        memory: "1200Mi"
+      requests:
+        cpu: "1200m"
+        memory: "512Mi"
+  workers:
+    ## if the airflow workers StatefulSet should be deployed
+    enabled: true
+    replicas: 1
+    ## resource requests/limits for the worker Pods
+    ## [SPEC] https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#resourcerequirements-v1-core
+    resources:
+      requests:
+        cpu: "256m"
+        memory: "2Gi"
+    ## configs for the PodDisruptionBudget of the worker StatefulSet
+    podDisruptionBudget:
+      enabled: true
+      maxUnavailable: "20%"
+    ## configs for the log-cleanup sidecar of the worker Pods
+    ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/monitoring/log-cleanup.md
+    logCleanup:
+      enabled: true
+      retentionMinutes: 21600
+      resources:
+        requests:
+          cpu: "10m"
+          memory: "32Mi"
+
+  redis:
+    ## if the `stable/redis` chart is used
+    ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/database/embedded-redis.md
+    ## [WARNING] consider using an external database with `externalDatabase.*`
+    enabled: true
+    ## configs for redis cluster mode
+    cluster:
+      enabled: false
+      slaveCount: 1
+
+    ## configs for the redis master StatefulSet
+    master:
+      ## resource requests/limits for the redis master Pods
+      ## [SPEC] https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#resourcerequirements-v1-core
+      resources:
+        requests:
+          cpu: "10m"
+          memory: "32Mi"
+
+      ## configs for the PVC of the redis master Pods
+      persistence:
+        enabled: false
+        storageClass: ""
+        size: 2Gi
+
+    ## configs for the redis slave StatefulSet
+    slave:
+      ## resource requests/limits for the slave Pods
+      ## [SPEC] https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#resourcerequirements-v1-core
+      resources:
+        requests:
+          cpu: "10m"
+          memory: "32Mi"
+
+      ## configs for the PVC of the redis slave Pods
+      persistence:
+        enabled: false
+        storageClass: ""
+        size: 8Gi
