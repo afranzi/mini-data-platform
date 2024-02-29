@@ -32,13 +32,19 @@ curl --resolve "argocd.data:80:$( minikube ip -p data )" -i http://argocd.data
 
 # DNS Local Resolver
 
-/etc/resolver/minikube-data
+> /etc/resolver/minikube-data
 
 ```
 domain data
-nameserver 192.168.64.2
+nameserver 192.168.64.4
 search_order 1
 timeout 5
+```
+
+> /etc/hosts
+
+```
+192.168.64.4 argocd.data
 ```
 
 > `nslookup argocd.data 192.168.64.2`

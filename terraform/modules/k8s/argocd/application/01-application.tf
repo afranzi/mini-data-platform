@@ -4,6 +4,8 @@ resource "argocd_application" "apps" {
     namespace = var.argocd_namespace
   }
 
+  cascade = true
+
   spec {
     project                = var.project_name
     revision_history_limit = var.history_limit
