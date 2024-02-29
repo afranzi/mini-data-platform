@@ -99,6 +99,8 @@ airflow:
     ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/database/embedded-redis.md
     ## [WARNING] consider using an external database with `externalDatabase.*`
     enabled: true
+    image:
+      tag: 7.2.4-debian-12-r9
     ## configs for redis cluster mode
     cluster:
       enabled: false
