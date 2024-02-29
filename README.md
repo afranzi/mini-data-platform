@@ -16,7 +16,10 @@ tfenv install latest
 tfenv use latest
 
 colima start
-minikube start --driver=docker --download-only
+# Intel
+minikube start --driver=hyperkit --download-only
+# M1
+minikube start --driver=qemu2  --download-only
 
 Minikube with Ingress setup
 https://github.com/scott-the-programmer/terraform-provider-minikube
@@ -36,7 +39,7 @@ curl --resolve "argocd.data:80:$( minikube ip -p data )" -i http://argocd.data
 
 ```
 domain data
-nameserver 192.168.64.4
+nameserver 192.168.105.4
 search_order 1
 timeout 5
 ```
@@ -44,7 +47,8 @@ timeout 5
 > /etc/hosts
 
 ```
-192.168.64.4 argocd.data
+192.168.105.4 argocd.data
+192.168.105.4 airflow.data
 ```
 
 > `nslookup argocd.data 192.168.64.2`

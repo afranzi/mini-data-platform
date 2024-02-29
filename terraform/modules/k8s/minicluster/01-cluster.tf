@@ -1,7 +1,8 @@
 resource "minikube_cluster" "cluster" {
-  driver       = "hyperkit" # docker does not support DNS addons
+  driver       = var.driver # Note: docker does not support DNS addons
   cluster_name = var.name
   cni          = "bridge"
+  network      = var.network
   memory       = var.memory
   cpus         = var.cpus
   addons       = [

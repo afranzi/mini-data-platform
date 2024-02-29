@@ -2,9 +2,12 @@ airflow:
   # https://airflow.apache.org/docs/helm-chart/stable/index.html#installing-the-chart-with-argocd
   createUserJob:
     useHelmHooks: false
+    applyCustomEnv: false
   migrateDatabaseJob:
     useHelmHooks: false
-
+    applyCustomEnv: false
+    jobAnnotations:
+      "argocd.argoproj.io/hook": Sync
   airflow:
     image:
       repository: apache/airflow
@@ -15,6 +18,7 @@ airflow:
       AIRFLOW__CORE__CHECK_SLAS: 'False'
       AIRFLOW__CORE__MAX_ACTIVE_RUNS_PER_DAG: 1
       AIRFLOW__CORE__MIN_SERIALIZED_DAG_UPDATE_INTERVAL: 150
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'True'
 
       ### [logging]
       AIRFLOW__LOGGING__REMOTE_LOGGING: 'False' #ToDo: enable
@@ -51,15 +55,19 @@ airflow:
     web:
       host: "airflow.data"
       ingressClassName: "nginx"
+      precedingPaths:
+        - path: /
+          serviceName: ssl-redirect
+          servicePort: use-annotation
   postgresql:
     enabled: true
   scheduler:
     resources:
       limits:
-        cpu: "1800m"
-        memory: "1200Mi"
+        cpu: "1000m"
+        memory: "1Gi"
       requests:
-        cpu: "1200m"
+        cpu: "1000m"
         memory: "512Mi"
   workers:
     ## if the airflow workers StatefulSet should be deployed
@@ -70,7 +78,7 @@ airflow:
     resources:
       requests:
         cpu: "256m"
-        memory: "2Gi"
+        memory: "1Gi"
     ## configs for the PodDisruptionBudget of the worker StatefulSet
     podDisruptionBudget:
       enabled: true

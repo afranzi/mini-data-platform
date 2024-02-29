@@ -26,6 +26,6 @@ terraform {
 
 terraform {
   backend "local" {
-    path = "/Users/afranzi-tf/Projects/mini-data-platform/terraform/terraform.tfstate"
+    path = "./state/terraform.tfstate"
   }
 }

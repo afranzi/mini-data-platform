@@ -3,8 +3,10 @@ provider "minikube" {
 }
 
 module "cluster" {
-  source = "../modules/k8s/minicluster"
-  name   = "data"
+  source  = "../modules/k8s/minicluster"
+  name    = "data"
+  driver  = "qemu2"
+  network = "socket_vmnet"
 }
 
 provider "kubernetes" {
