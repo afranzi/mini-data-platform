@@ -55,10 +55,6 @@ airflow:
     web:
       host: "airflow.data"
       ingressClassName: "nginx"
-      precedingPaths:
-        - path: /
-          serviceName: ssl-redirect
-          servicePort: use-annotation
   postgresql:
     enabled: true
   scheduler:
