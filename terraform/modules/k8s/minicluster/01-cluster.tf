@@ -5,7 +5,7 @@ resource "minikube_cluster" "cluster" {
   network      = var.network
   memory       = var.memory
   cpus         = var.cpus
-  addons       = [
+  addons = [
     "default-storageclass",
     "storage-provisioner",
     # https://minikube.sigs.k8s.io/docs/handbook/addons/ingress-dns/

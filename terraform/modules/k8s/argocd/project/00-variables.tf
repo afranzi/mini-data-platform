@@ -20,7 +20,7 @@ variable "namespaces" {
 
 variable "cluster_resource_allowlist" {
   description = "Resource allowlist"
-  type        = list(object({
+  type = list(object({
     group : string
     kind : string
   }))

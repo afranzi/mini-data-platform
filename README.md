@@ -19,7 +19,16 @@ colima start
 # Intel
 minikube start --driver=hyperkit --download-only
 # M1
+https://minikube.sigs.k8s.io/docs/drivers/qemu/
+
+```
+brew install socket_vmnet
+brew tap homebrew/services
+HOMEBREW=$(which brew) && sudo ${HOMEBREW} services start socket_vmnet
 minikube start --driver=qemu2  --download-only
+```
+# https://aquasecurity.github.io/trivy
+brew install trivy
 
 Minikube with Ingress setup
 https://github.com/scott-the-programmer/terraform-provider-minikube

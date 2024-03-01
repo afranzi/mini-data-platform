@@ -11,10 +11,5 @@ terraform {
       version = "~> 2.12.1"
       source  = "hashicorp/helm"
     }
-    # https://registry.terraform.io/providers/oboukili/argocd/
-    argocd = {
-      source  = "oboukili/argocd"
-      version = "6.0.3"
-    }
   }
 }
