@@ -13,10 +13,12 @@ theme:
   favicon: images/favicon.png
   icon:
     repo: fontawesome/brands/github
+    logo: material/kubernetes
   features:
     - navigation.tabs
     - navigation.sections
     - navigation.expand
+    - navigation.path
     - search.highlight
     - search.share
     - search.suggest
@@ -54,10 +56,10 @@ extra:
       link: https://www.linkedin.com/in/albertfranzi/
       name: linkedin
 
-# Page tree
-nav:
-  - Home: index.md
-  - Terraform: terraform/main/README.md
+## Page tree
+#nav:
+#  - Home: index.md
+#  - Terraform: terraform.md
 
 plugins:
   - search:

@@ -1,6 +1,4 @@
-# server
-
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- BEGIN_TF_DOCS -->
 ## Requirements
 
 | Name | Version |
@@ -45,4 +43,4 @@ No modules.
 | <a name="output_argocd_server"></a> [argocd\_server](#output\_argocd\_server) | ArgoCD Server Addr |
 | <a name="output_argocd_token"></a> [argocd\_token](#output\_argocd\_token) | ArgoCD Token |
 | <a name="output_namespace"></a> [namespace](#output\_namespace) | K8s namespace where ArgoCD server has been deployed |
-<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- END_TF_DOCS -->

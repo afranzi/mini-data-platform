@@ -18,3 +18,9 @@ repos:
         entry: bash -c 'cd airflow && pre-commit run --all-files'
         require_serial: true
         verbose: true
+      - id: terraform-docs
+        name: Terraform Documentation
+        language: script
+        entry: ./scripts/terraform_docs.sh
+        require_serial: true
+        verbose: true

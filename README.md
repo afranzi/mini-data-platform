@@ -17,7 +17,7 @@ tfenv use latest
 
 colima start
 # Intel
-minikube start --driver=hyperkit --download-only
+minikube start --driver=qemu --download-only
 # M1
 https://minikube.sigs.k8s.io/docs/drivers/qemu/
 

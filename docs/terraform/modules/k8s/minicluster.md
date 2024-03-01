@@ -1,6 +1,15 @@
-# minicluster
+<!-- BEGIN_TF_DOCS -->
+# MiniCluster
+This module aims to deploy a Kubernetes cluster by using [minikube](https://minikube.sigs.k8s.io/)
 
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+## Requirements
+Since we will be deploying ArgoCD & Airflow in the local k8s cluster, we should provide at least 8GB & 4 CPUs.
+
+!!! tip "minikube drivers"
+    The **docker** driver does not support the ingress add-on so we advice to use the
+    [qemu](https://minikube.sigs.k8s.io/docs/drivers/qemu/) driver in M1 & M2 Macs, since
+    [hyperkit](https://minikube.sigs.k8s.io/docs/drivers/hyperkit/) is not supported in arm architecture.
+
 ## Requirements
 
 | Name | Version |
@@ -42,4 +51,4 @@ No modules.
 | <a name="output_client_key"></a> [client\_key](#output\_client\_key) | Client key for cluster |
 | <a name="output_cluster_ca_certificate"></a> [cluster\_ca\_certificate](#output\_cluster\_ca\_certificate) | Certificate authority for cluster |
 | <a name="output_host"></a> [host](#output\_host) | The host name for the cluster |
-<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- END_TF_DOCS -->
