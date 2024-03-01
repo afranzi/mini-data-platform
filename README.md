@@ -1,72 +1,15 @@
-# mini-data-platform
+# The Mini Data Platform
 
-## Setup
+In the evolving landscape of data management and infrastructure automation, the ability to efficiently deploy and manage
+data platforms is essential for any organization looking to leverage data-driven insights.
+The mini data platform cluster project that embodies the spirit of innovation and learning in the fields of
+Infrastructure as Code (IaC), Data Engineering, and Operations (Ops).
 
-brew install docker
-brew install hyperkit
-brew install colima
-brew install minikube
-brew install --cask openlens
-https://github.com/alebcay/openlens-node-pod-menu
+![Mini-DataPlatformConcept](docs/images/concept.jpg)
 
-## https://github.com/tfutils/tfenv
+At the heart of this project lies a carefully curated stack comprising Terraform, Minikube, ArgoCD, and Airflow.
+Each tool has been selected for its strength in automating and managing infrastructure, orchestrating deployments, and
+scheduling complex workflows, respectively. Together, they form a robust framework that enables users to deploy a
+miniature yet fully-functional data platform cluster with ease.
 
-brew install tfenv
-tfenv install latest
-tfenv use latest
-
-colima start
-# Intel
-minikube start --driver=qemu --download-only
-# M1
-https://minikube.sigs.k8s.io/docs/drivers/qemu/
-
-```
-brew install socket_vmnet
-brew tap homebrew/services
-HOMEBREW=$(which brew) && sudo ${HOMEBREW} services start socket_vmnet
-minikube start --driver=qemu2  --download-only
-```
-# https://aquasecurity.github.io/trivy
-brew install trivy
-
-Minikube with Ingress setup
-https://github.com/scott-the-programmer/terraform-provider-minikube
-https://minikube.sigs.k8s.io/docs/handbook/addons/ingress-dns/
-
-Authenticate ArgoCD with Google
-https://argo-cd.readthedocs.io/en/stable/operator-manual/user-management/google/
-
-Literature
-https://medium.com/@mehmetodabashi/installing-argocd-on-minikube-and-deploying-a-test-application-caa68ec55fbf
-
-curl --resolve "argocd.data:80:$( minikube ip -p data )" -i http://argocd.data
-
-# DNS Local Resolver
-
-> /etc/resolver/minikube-data
-
-```
-domain data
-nameserver 192.168.105.4
-search_order 1
-timeout 5
-```
-
-> /etc/hosts
-
-```
-192.168.105.4 argocd.data
-192.168.105.4 airflow.data
-```
-
-> `nslookup argocd.data 192.168.64.2`
-
-```
-Server:		192.168.64.2
-Address:	192.168.64.2#53
-
-Non-authoritative answer:
-Name:	argocd.data
-Address: 192.168.64.2
-```
+See full documentation in: [mini-data-platform docs](https://afranzi.github.io/mini-data-platform).

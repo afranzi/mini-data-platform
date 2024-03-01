@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Mini Data Platform
 This project aims to showcase the value and capabilities to deploy a local K8s cluster with the minimum
 Data Platform stack we would start in any company. This means having K8s with ArgoCD & Airflow.
@@ -14,13 +13,15 @@ For the mini-data-platform deployment we will require:
 - :simple-terraform: __[tfenv](https://github.com/tfutils/tfenv)__ to manage our Terraform version
 - :simple-docker: __[colima](https://github.com/abiosoft/colima)__ for running docker
 - :simple-docker: __[qemu driver](https://minikube.sigs.k8s.io/docs/drivers/qemu/)__ for K8S VM creation
-- :simple-lens: __[OpenLens](https://github.com/MuhammedKalkan/OpenLens)__ to interact with K8s resources
+- :simple-lens: __[OpenLens](https://github.com/MuhammedKalkan/OpenLens)__ to interact with K8s
+- :material-security: __[trivy](https://aquasecurity.github.io/trivy)__ for security checks
 </div>
 
 ``` shell title="setup.sh"
 brew install docker
 brew install colima
 brew install minikube
+brew install trivy
 # Configure Terraform
 brew install tfenv
 tfenv install latest
@@ -72,6 +73,7 @@ timeout 5
 
 ---
 
+<!-- BEGIN_TF_DOCS -->
 ## Requirements
 
 | Name | Version |

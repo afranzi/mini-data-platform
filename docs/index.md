@@ -1,4 +1,5 @@
 # The Mini Data Platform
+## The concept
 
 In the evolving landscape of data management and infrastructure automation, the ability to efficiently deploy and manage
 data platforms is essential for any organization looking to leverage data-driven insights.
@@ -52,3 +53,17 @@ miniature yet fully-functional data platform cluster with ease.
 </div>
 
 ---
+
+## Literature
+
+This section compiles a selection of articles and resources that were invaluable in the development of the mini data
+platform cluster project. It features links to comprehensive readings on Terraform, Minikube, ArgoCD, and Airflow, each
+chosen for its clear explanations, practical advice, and relevance to integrating and utilizing these tools effectively.
+We extend our gratitude to the authors of these resources for their insights and contributions to the community.
+
+- [Installing ArgoCD on Minikube and deploying a test application](https://medium.com/@mehmetodabashi/installing-argocd-on-minikube-and-deploying-a-test-application-caa68ec55fbf)
+
+!!! tip ":octicons-heart-fill-24: Acknowledge"
+    We acknowledge and appreciate the effort and expertise of each author whose work has guided us. As our project grows and
+    adapts, we will continue to update this section with new findings and articles that reflect our ongoing learning journey
+    and the contributions of experts in the field.
