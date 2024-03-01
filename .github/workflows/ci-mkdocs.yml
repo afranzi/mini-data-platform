@@ -26,7 +26,10 @@ jobs:
             mkdocs-material-
 
       - name: Install mkdocs-material python library
-        run: pip install mkdocs-material
+        run: |
+          pip install mkdocs-material \
+                      mkdocs-git-revision-date-localized-plugin \
+                      mkdocs-git-committers-plugin-2
 
       - name: Documentation Github deployment
         run: mkdocs gh-deploy --force
