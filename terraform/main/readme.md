@@ -57,7 +57,8 @@ Once the minikube cluster is deployed via terraform, we will obtain its ip with 
 $ minikube ip -p data
 192.168.105.4
 ```
-Then, we will provide a new resolver plus add the domain into the hosts file.
+
+Then, we will provide the new resolver in addition of updating the hosts file.
 
 ``` title="/etc/resolver/minikube-data"
 domain data
