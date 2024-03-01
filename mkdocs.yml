@@ -57,6 +57,7 @@ extra:
 # Page tree
 nav:
   - Home: index.md
+  - Terraform: terraform/main/README.md
 
 plugins:
   - search:
