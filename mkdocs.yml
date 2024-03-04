@@ -19,6 +19,7 @@ theme:
     - navigation.sections
     - navigation.expand
     - navigation.path
+    - toc.integrate
     - search.highlight
     - search.share
     - search.suggest
@@ -75,6 +76,8 @@ markdown_extensions:
   - attr_list
   - md_in_html
   - admonition
+  - pymdownx.tasklist:
+      custom_checkbox: true
   - pymdownx.details
   - pymdownx.superfences
   - pymdownx.emoji:

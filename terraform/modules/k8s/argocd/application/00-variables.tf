@@ -30,7 +30,13 @@ variable "name" {
 
 variable "path" {
   type        = string
-  default     = "helm"
+  default     = ""
+  description = "Repository path with helm"
+}
+
+variable "chart" {
+  type        = string
+  default     = null
   description = "Repository path with helm"
 }
 
@@ -50,4 +56,15 @@ variable "history_limit" {
   type        = number
   default     = 3
   description = "History limit"
+}
+
+variable "parameters" {
+  type        = map(string)
+  default     = {}
+  description = "Helm parameters which are passed to the helm template command upon manifest generation"
+}
+
+variable "values" {
+  type    = any
+  default = null
 }

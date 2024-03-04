@@ -2,15 +2,20 @@
 
 ![Version: 8.8.0](https://img.shields.io/badge/Version-8.8.0-informational?style=flat-square) ![AppVersion: 2.6.3](https://img.shields.io/badge/AppVersion-2.6.3-informational?style=flat-square)
 
-!!! tip "Description"
-    This chart aims to deploy an Airflow setup inside minikube, so we validate and develop Airflow inside a local K8s cluster.
+!!! tip "Community Chart"
+    In our project, we use the [Airflow Community Helm chart](https://artifacthub.io/packages/helm/airflow-helm/airflow)
+    to deploy Airflow on our Minikube cluster.
+   
+    This chart is our favorite one because it's flexible and easy to use, making it perfect for getting Airflow up
+    running in a Kubernetes environment like ours.
 
 ---
 
 ## Setup
 
-Airflow deployment is managed by :simple-argo: **[ArgoCD](https://argo-cd.readthedocs.io)**, therefore any change in the
-Helm or local drift in K8s will be discovered by ArgoCD.
+For the actual deployment into our Kubernetes cluster, we're using :simple-argo: **[ArgoCD](https://argo-cd.readthedocs.io)**.
+It's a tool that helps us deploy applications automatically, following the best practices of GitOps. This means we can
+manage our Airflow setup with code, making changes easily and keeping everything up to date without hassle.
 
 ![Airflow Argo deployment](../images/airflow-argocd.png)
 

@@ -54,6 +54,20 @@ miniature yet fully-functional data platform cluster with ease.
 
 ---
 
+## Execution
+
+The main advantage about using Terraform for this project is the simplicity of deploying it.
+
+```shell
+cd terraform/main
+terraform init
+terraform apply
+```
+
+In case of doubt, check the [:simple-terraform: Terraform section](terraform/main).
+
+---
+
 ## Literature
 
 This section compiles a selection of articles and resources that were invaluable in the development of the mini data

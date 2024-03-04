@@ -13,10 +13,21 @@ resource "argocd_application" "apps" {
     source {
       repo_url        = var.repo_url
       path            = var.path
+      chart           = var.chart
       target_revision = var.target_revision
 
       helm {
         value_files = var.value_files
+
+        values = var.values != null ? yamlencode(var.values) : null
+
+        dynamic "parameter" {
+          for_each = var.parameters
+          content {
+            name  = parameter.key
+            value = parameter.value
+          }
+        }
       }
     }
 
@@ -24,11 +35,5 @@ resource "argocd_application" "apps" {
       server    = var.cluster_name
       namespace = var.namespace
     }
-  }
-}
-
-resource "kubernetes_namespace" "namespace" {
-  metadata {
-    name = var.namespace
   }
 }
