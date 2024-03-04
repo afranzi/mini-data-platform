@@ -6,7 +6,7 @@ data platforms is essential for any organization looking to leverage data-driven
 The mini data platform cluster project that embodies the spirit of innovation and learning in the fields of
 Infrastructure as Code (IaC), Data Engineering, and Operations (Ops).
 
-![Mini-DataPlatformConcept](images/concept.jpg){ align=left }
+![Mini-DataPlatformConcept](images/concept.jpg)
 
 At the heart of this project lies a carefully curated stack comprising Terraform, Minikube, ArgoCD, and Airflow.
 Each tool has been selected for its strength in automating and managing infrastructure, orchestrating deployments, and

@@ -1,11 +1,11 @@
 apiVersion: v2
 name: airflow
-description: Universal Ranking Algorithm for Natural language Archive and Index
+description: This chart aims to deploy an Airflow setup inside minikube, so we validate and develop Airflow inside a local K8s cluster.
 maintainers:
   - name: Albert Franzi
 version: 8.8.0
 appVersion: 2.6.3
 dependencies:
-  - name: airflow # https://artifacthub.io/packages/helm/airflow-helm/airflow
+  - name: airflow  # https://artifacthub.io/packages/helm/airflow-helm/airflow
     version: 8.8.0
-    repository: https://airflow-helm.github.io/charts #https://airflow.apache.org
+    repository: https://airflow-helm.github.io/charts  # https://airflow.apache.org

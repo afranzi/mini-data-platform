@@ -1,6 +1,6 @@
 #!/bin/bash
 
-docs=($(find terraform -type f -path '*/readme.md' | sort -r))
+docs=($(find helms -type f -path '*/README.md' | sort -r))
 
 for doc in "${docs[@]}"; do
   folder=$(dirname "${doc}")

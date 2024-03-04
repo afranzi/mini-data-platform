@@ -2,7 +2,9 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
+      - id: check-merge-conflict
       - id: trailing-whitespace
+      - id: check-added-large-files
       - id: end-of-file-fixer
   - repo: local
     hooks:
@@ -12,15 +14,27 @@ repos:
         entry: bash -c 'cd terraform && pre-commit run --all-files'
         require_serial: true
         verbose: true
+      - id: terraform-docs
+        name: Terraform Documentation
+        language: script
+        entry: ./scripts/terraform_docs.sh
+        require_serial: true
+        verbose: true
       - id: pre-commit-python
         name: pre-commit Python
         language: system
         entry: bash -c 'cd airflow && pre-commit run --all-files'
         require_serial: true
         verbose: true
-      - id: terraform-docs
+      - id: pre-commit-helms
+        name: pre-commit Helms
+        language: system
+        entry: bash -c 'cd helms && pre-commit run --all-files'
+        require_serial: true
+        verbose: true
+      - id: helm-docs
         name: Terraform Documentation
         language: script
-        entry: ./scripts/terraform_docs.sh
+        entry: ./scripts/helm_docs.sh
         require_serial: true
         verbose: true

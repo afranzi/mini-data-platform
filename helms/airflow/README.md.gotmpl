@@ -1,0 +1,47 @@
+# Airflow
+
+{{ template "chart.badgesSection" . }}
+
+!!! tip "Description"
+    {{ template "chart.description" . }}
+
+---
+
+## Setup
+
+Airflow deployment is managed by :simple-argo: **[ArgoCD](https://argo-cd.readthedocs.io)**, therefore any change in the
+Helm or local drift in K8s will be discovered by ArgoCD.
+
+![Airflow Argo deployment](../images/airflow-argocd.png)
+
+The most important properties when defining our Airflow values are:
+
+<div class="grid cards" markdown>
+
+-   :simple-github:{ .lg .middle } __`dags.gitSync.repo`__
+
+    ---
+
+    Github repo containing our Airflow DAGs code.
+    Airflow [**dags-git-sync**](https://airflow.apache.org/docs/helm-chart/stable/manage-dags-files.html#using-git-sync9)
+    sidecars will be fetching new code periodically from it. So all code pushed there will be automatically deployed.
+
+-   :octicons-code-16:{ .lg .middle } __`dags.gitSync.repoSubPath`__
+
+    ---
+
+    Github folder containing our **DAGs code**. This property is mandatory to use in this project since
+    we are defining multiple tools in it (i.e. K8s, terraform, Helms).
+
+</div>
+
+---
+
+{{ template "chart.homepageLine" . }}
+
+{{ template "chart.sourcesSection" . }}
+
+{{ template "chart.requirementsSection" . }}
+
+{{ template "chart.valuesSection" . }}
+
