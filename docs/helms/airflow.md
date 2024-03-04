@@ -5,7 +5,7 @@
 !!! tip "Community Chart"
     In our project, we use the [Airflow Community Helm chart](https://artifacthub.io/packages/helm/airflow-helm/airflow)
     to deploy Airflow on our Minikube cluster.
-   
+
     This chart is our favorite one because it's flexible and easy to use, making it perfect for getting Airflow up
     running in a Kubernetes environment like ours.
 
@@ -16,6 +16,9 @@
 For the actual deployment into our Kubernetes cluster, we're using :simple-argo: **[ArgoCD](https://argo-cd.readthedocs.io)**.
 It's a tool that helps us deploy applications automatically, following the best practices of GitOps. This means we can
 manage our Airflow setup with code, making changes easily and keeping everything up to date without hassle.
+
+Using ArgoCD not only makes our lives easier by automating deployment tasks but also keeps our project tidy and
+well-organized. It's a smart way to handle deployments, giving us more time to focus on making our data platform better.
 
 ![Airflow Argo deployment](../images/airflow-argocd.png)
 
@@ -114,4 +117,3 @@ The most important properties when defining our Airflow values are:
 | airflow.workers.replicas | int | `1` |  |
 | airflow.workers.resources.requests.cpu | string | `"256m"` |  |
 | airflow.workers.resources.requests.memory | string | `"1Gi"` |  |
-

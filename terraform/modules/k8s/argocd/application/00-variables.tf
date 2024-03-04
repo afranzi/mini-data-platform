@@ -65,6 +65,7 @@ variable "parameters" {
 }
 
 variable "values" {
-  type    = any
-  default = null
+  type        = any
+  default     = null
+  description = "Helm values which are passed to the helm template command upon manifest generation"
 }

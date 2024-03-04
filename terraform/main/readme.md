@@ -94,8 +94,10 @@ No providers.
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_application"></a> [application](#module\_application) | ../modules/k8s/argocd/application | n/a |
+| <a name="module_application_db"></a> [application\_db](#module\_application\_db) | ../modules/k8s/argocd/application | n/a |
 | <a name="module_argocd"></a> [argocd](#module\_argocd) | ../modules/k8s/argocd/server | n/a |
 | <a name="module_cluster"></a> [cluster](#module\_cluster) | ../modules/k8s/minicluster | n/a |
+| <a name="module_namespace"></a> [namespace](#module\_namespace) | ../modules/k8s/namespace | n/a |
 | <a name="module_project"></a> [project](#module\_project) | ../modules/k8s/argocd/project | n/a |
 
 ## Resources
