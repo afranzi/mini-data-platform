@@ -1,5 +1,5 @@
 provider "minikube" {
-  kubernetes_version = "v1.29.2"
+  kubernetes_version = "v1.33.10"
 }
 
 module "cluster" {
