@@ -15,13 +15,13 @@ Since we will be deploying ArgoCD & Airflow in the local k8s cluster, we should 
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.7.4 |
-| <a name="requirement_minikube"></a> [minikube](#requirement\_minikube) | ~> 0.3.10 |
+| <a name="requirement_minikube"></a> [minikube](#requirement\_minikube) | ~> 0.6.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_minikube"></a> [minikube](#provider\_minikube) | ~> 0.3.10 |
+| <a name="provider_minikube"></a> [minikube](#provider\_minikube) | ~> 0.6.0 |
 
 ## Modules
 

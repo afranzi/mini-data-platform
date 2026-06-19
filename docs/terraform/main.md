@@ -83,7 +83,7 @@ timeout 5
 | <a name="requirement_argocd"></a> [argocd](#requirement\_argocd) | 6.0.3 |
 | <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 2.12.1 |
 | <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 2.26.0 |
-| <a name="requirement_minikube"></a> [minikube](#requirement\_minikube) | ~> 0.3.10 |
+| <a name="requirement_minikube"></a> [minikube](#requirement\_minikube) | ~> 0.6.0 |
 
 ## Providers
 

@@ -3,7 +3,7 @@ terraform {
   required_providers {
     # https://registry.terraform.io/providers/scott-the-programmer/minikube
     minikube = {
-      version = "~> 0.3.10"
+      version = "~> 0.6.0"
       source  = "scott-the-programmer/minikube"
     }
     # https://registry.terraform.io/providers/hashicorp/kubernetes
