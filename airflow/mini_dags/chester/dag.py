@@ -4,7 +4,11 @@ from mini_dags.chester.filters import chester_filters
 from mini_dags.chester.macros import chester_macros
 
 from airflow.configuration import conf as airflow_conf
-from airflow.sdk import DAG, ScheduleArg
+from airflow.sdk import DAG
+
+# `ScheduleArg` is defined in airflow.sdk.definitions.dag but not re-exported at
+# the airflow.sdk top level in Airflow 3.2.2 — import it from its actual module.
+from airflow.sdk.definitions.dag import ScheduleArg
 
 
 class ChesterDag(DAG):
