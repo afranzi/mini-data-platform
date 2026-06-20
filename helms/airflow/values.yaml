@@ -1,133 +1,123 @@
+# Official Apache Airflow chart (1.22.0 / Airflow 3.2.2) values — wrapper-chart
+# pattern: everything nests under the `airflow:` alias (the dependency name).
+# Ported from the community airflow-helm schema in Story 2.3.
 airflow:
-  # https://airflow.apache.org/docs/helm-chart/stable/index.html#installing-the-chart-with-argocd
+  executor: CeleryExecutor
+  airflowVersion: "3.2.2"
+
+  images:
+    airflow:
+      repository: apache/airflow
+      tag: "3.2.2-python3.12"
+
+  # --- Secrets (Terraform-managed, Story 2.1) ---
+  # Chart reads keys: `fernet-key`, `api-secret-key` (airflow-config-credentials)
+  # and `connection` (airflow-metadata). JWT is chart-auto-generated (>=1.17).
+  fernetKeySecretName: airflow-config-credentials
+  apiSecretKeySecretName: airflow-config-credentials
+  data:
+    metadataSecretName: airflow-metadata
+
+  # Embedded chart Postgres is OFF — Postgres runs as its own `postgres` ArgoCD app.
+  postgresql:
+    enabled: false
+
+  # CeleryExecutor broker — Redis, no persistence (local).
+  redis:
+    enabled: true
+    persistence:
+      enabled: false
+
+  # Airflow config, keyed by section (official schema; not flat AIRFLOW__ env).
+  config:
+    core:
+      # Airflow 3 SimpleAuthManager (overrides the chart's FAB default).
+      auth_manager: "airflow.api_fastapi.auth.managers.simple.simple_auth_manager.SimpleAuthManager"
+      simple_auth_manager_users: "admin:admin"
+      load_examples: 'False'
+      max_active_runs_per_dag: 1
+      dags_are_paused_at_creation: 'True'
+    api:
+      base_url: "https://airflow.data"
+    database:
+      load_default_connections: 'False'
+    logging:
+      remote_logging: 'False'
+
+  # SimpleAuth has no FAB users table -> no create-user job.
   createUserJob:
-    useHelmHooks: false
-    applyCustomEnv: false
+    enabled: false
+
+  # DB migrate as an ArgoCD sync-hook (no Helm hooks) — FR12/FR21.
   migrateDatabaseJob:
+    enabled: true
     useHelmHooks: false
     applyCustomEnv: false
     jobAnnotations:
-      "argocd.argoproj.io/hook": Sync
-  airflow:
-    image:
-      repository: apache/airflow
-      tag: 2.8.2-python3.10 # https://hub.docker.com/r/apache/airflow/tags
-    executor: CeleryExecutor
-    config:
-      ### [core]
-      AIRFLOW__CORE__CHECK_SLAS: 'False'
-      AIRFLOW__CORE__MAX_ACTIVE_RUNS_PER_DAG: 1
-      AIRFLOW__CORE__MIN_SERIALIZED_DAG_UPDATE_INTERVAL: 150
-      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'True'
+      argocd.argoproj.io/hook: Sync
 
-      ### [logging]
-      AIRFLOW__LOGGING__REMOTE_LOGGING: 'False' #ToDo: enable
-
-      ### [webserver]
-      AIRFLOW__WEBSERVER__BASE_URL: https://airflow.data
-      AIRFLOW__WEBSERVER__HIDE_PAUSED_DAGS_BY_DEFAULT: 'True'
-      AIRFLOW__WEBSERVER__ENABLE_PROXY_FIX: 'True'
-      AIRFLOW__WEBSERVER__EXPOSE_CONFIG: 'False'
-      AIRFLOW__WEBSERVER__AUTHENTICATE: 'False'
-
-      ### [api]
-      AIRFLOW__API__AUTH_BACKENDS: airflow.api.auth.backend.basic_auth
-
-      ### [database]
-      AIRFLOW__DATABASE__LOAD_DEFAULT_CONNECTIONS: 'False'
-
-  dags:
-    gitSync:
-      enabled: true
-      repo: "https://github.com/afranzi/mini-data-platform.git"
-      repoSubPath: "airflow"
-      branch: main
-      revision: HEAD
-      syncWait: 60
-      resources:
-        requests:
-          cpu: "50m"
-          memory: "64Mi"
-
-  ingress:
-    enabled: true
-    apiVersion: networking.k8s.io/v1
-    web:
-      host: "airflow.data"
-      ingressClassName: "nginx"
-  postgresql:
-    enabled: true
+  # --- Airflow 3 component topology (FR8) with conservative local sizing ---
   scheduler:
     resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
       limits:
         cpu: "1000m"
-        memory: "1Gi"
-      requests:
-        cpu: "1000m"
-        memory: "512Mi"
-  workers:
-    ## if the airflow workers StatefulSet should be deployed
-    enabled: true
-    replicas: 1
-    ## resource requests/limits for the worker Pods
-    ## [SPEC] https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#resourcerequirements-v1-core
+        memory: 1Gi
+
+  apiServer:
     resources:
       requests:
-        cpu: "256m"
-        memory: "1Gi"
-    ## configs for the PodDisruptionBudget of the worker StatefulSet
-    podDisruptionBudget:
-      enabled: true
-      maxUnavailable: "20%"
-      apiVersion:
-    ## configs for the log-cleanup sidecar of the worker Pods
-    ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/monitoring/log-cleanup.md
-    logCleanup:
-      enabled: true
-      retentionMinutes: 21600
-      resources:
-        requests:
-          cpu: "10m"
-          memory: "32Mi"
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: "1000m"
+        memory: 1Gi
 
-  redis:
-    ## if the `stable/redis` chart is used
-    ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/database/embedded-redis.md
-    ## [WARNING] consider using an external database with `externalDatabase.*`
+  dagProcessor:
     enabled: true
-    image:
-      tag: 7.2.4-debian-12-r9
-    ## configs for redis cluster mode
-    cluster:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+
+  triggerer:
+    enabled: true
+    replicas: 1
+    persistence:
       enabled: false
-      slaveCount: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
 
-    ## configs for the redis master StatefulSet
-    master:
-      ## resource requests/limits for the redis master Pods
-      ## [SPEC] https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#resourcerequirements-v1-core
-      resources:
-        requests:
-          cpu: "10m"
-          memory: "32Mi"
+  workers:
+    replicas: 1
+    persistence:
+      enabled: false
+    resources:
+      requests:
+        cpu: 256m
+        memory: 1Gi
 
-      ## configs for the PVC of the redis master Pods
-      persistence:
-        enabled: false
-        storageClass: ""
-        size: 2Gi
+  # DAGs via gitSync from the public repo (official keys: subPath / rev).
+  dags:
+    persistence:
+      enabled: false
+    gitSync:
+      enabled: true
+      repo: https://github.com/afranzi/mini-data-platform.git
+      subPath: airflow
+      branch: main
+      rev: HEAD
 
-    ## configs for the redis slave StatefulSet
-    slave:
-      ## resource requests/limits for the slave Pods
-      ## [SPEC] https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#resourcerequirements-v1-core
-      resources:
-        requests:
-          cpu: "10m"
-          memory: "32Mi"
-
-      ## configs for the PVC of the redis slave Pods
-      persistence:
-        enabled: false
-        storageClass: ""
-        size: 8Gi
+  # nginx ingress at airflow.data -> api-server (Airflow 3 serves the UI here).
+  ingress:
+    enabled: true
+    apiServer:
+      enabled: true
+      ingressClassName: nginx
+      path: "/"
+      hosts:
+        - name: airflow.data
