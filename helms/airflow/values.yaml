@@ -17,6 +17,11 @@ airflow:
   apiSecretKeySecretName: airflow-config-credentials
   data:
     metadataSecretName: airflow-metadata
+    # CeleryExecutor needs a result backend (the chart does NOT derive it from
+    # metadataSecretName). Points at a TF-managed secret whose `connection` key is
+    # `db+postgresql://mini:<pw>@postgres-postgresql.data.svc.cluster.local:5432/mini_data_platform`.
+    # The `airflow-result-backend` secret is created in Story 2.6 (Terraform).
+    resultBackendSecretName: airflow-result-backend
 
   # Embedded chart Postgres is OFF — Postgres runs as its own `postgres` ArgoCD app.
   postgresql:

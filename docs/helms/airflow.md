@@ -79,6 +79,7 @@ The most important properties when defining our Airflow values are:
 | airflow.dags.gitSync.subPath | string | `"airflow"` |  |
 | airflow.dags.persistence.enabled | bool | `false` |  |
 | airflow.data.metadataSecretName | string | `"airflow-metadata"` |  |
+| airflow.data.resultBackendSecretName | string | `"airflow-result-backend"` |  |
 | airflow.executor | string | `"CeleryExecutor"` |  |
 | airflow.fernetKeySecretName | string | `"airflow-config-credentials"` |  |
 | airflow.images.airflow.repository | string | `"apache/airflow"` |  |
