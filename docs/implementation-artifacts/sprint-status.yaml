@@ -50,14 +50,14 @@ development_status:
   epic-1-retrospective: optional
 
   # Epic 2: Airflow 3.0 Cutover (Official Chart + Runtime + DAG Migration)
-  epic-2: in-progress
+  epic-2: done
   2-1-provision-terraform-managed-airflow-secrets: done
   2-2-switch-wrapper-chart-to-the-official-apache-chart: done
   2-3-port-values-yaml-to-the-official-chart-schema-with-airflow-3-topology: done
   2-4-migrate-dag-code-and-python-tooling-to-airflow-3: done
   2-5-source-postgres-images-from-bitnamilegacy: done
   2-6-update-terraform-argocd-application-and-wiring: done
-  2-7-deploy-and-verify-airflow-3-0-end-to-end: review
+  2-7-deploy-and-verify-airflow-3-0-end-to-end: done
   epic-2-retrospective: optional
 
   # Epic 3: Validation, Reproducibility & Documentation

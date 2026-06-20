@@ -4,7 +4,7 @@ baseline_commit: 305075b2c0c9ecc8edcec15daa1b609afc3279d7
 
 # Story 2.7: Deploy and Verify Airflow 3.0 End-to-End
 
-Status: review
+Status: done
 
 ## Story
 
@@ -113,7 +113,7 @@ This is a **live-apply** story. Unlike 2.1–2.6 (code-only), it mutates the run
 
 - ✅ **AC1** — `airflow` + `postgres` ArgoCD apps **Synced/Healthy**; all Airflow 3 components Running (api-server, scheduler, dag-processor, triggerer, worker, redis). Completes the deferred Story 1.3 AC#3/#4 GitOps app-sync.
 - ✅ **AC2** — `migrateDatabaseJob` (ArgoCD `hook: Sync`) ran `airflow db migrate` → "Database migration done!"; no create-user job (SimpleAuth).
-- ✅ **AC3** — UI 200 at `airflow.data` (tunnel); `/api/v2/monitor/health` all-healthy; SimpleAuth admin login → 201 token. Password is auto-generated/ephemeral (documented; pinning deferred).
+- ⚠️ **AC3 (PASS-with-caveat)** — UI 200 at `airflow.data` (tunnel); `/api/v2/monitor/health` all-healthy; SimpleAuth admin login → 201 token (verified). **Caveat:** the admin password is auto-generated and ephemeral (regenerates on every api-server restart, retrievable from logs); a durable, pinned login is a tracked follow-up (deferred-work). Login is proven to work, but not yet stable across restarts.
 - ✅ **AC4** — `ChesterDag`/`my_dag_name` parses with **no import errors** (after fixing the `ScheduleArg` import bug found here).
 - ✅ **AC5** — manual DAG run `story27-verify-1` → **success** end-to-end (scheduler → Celery worker → metadata DB).
 - ✅ **AC6** — Bitnami password trap moot (fresh PVC); broker/redis secrets present + worker connected; base_url/TLS functions over tunnel; poetry.lock relocked to 3.2.2; config lint run (remaining = chart defaults).
@@ -123,7 +123,14 @@ This is a **live-apply** story. Unlike 2.1–2.6 (code-only), it mutates the run
 
 ### Review Findings
 
-_Pending code review._
+_Adversarial review 2026-06-20 (Blind Hunter + Edge Case Hunter + Acceptance Auditor). AC1/2/5/6 PASS; AC4 PASS (AIR301/302 → "All checks passed"); AC3 PASS-with-caveat (login verified, password ephemeral). 1 patch, 3 deferred, 5 dismissed._
+
+- [x] [Review][Patch] AC3 was overclaimed as unqualified GREEN — corrected to PASS-with-caveat: login verified at deploy time, but the SimpleAuth admin password is ephemeral (regenerates per api-server restart); durable-login pinning is a tracked follow-up.
+- [x] [Review][Defer] [Low] `ScheduleArg` imported from internal `airflow.sdk.definitions.dag` — brittle across Airflow 3.x minor bumps [airflow/mini_dags/chester/dag.py:8]. Works on 3.2.2; harden with `from __future__ import annotations` + TYPE_CHECKING (or try/except) on upgrade. → deferred-work.
+- [x] [Review][Defer] [Low] JWT-secret rotation rollout gap — rotating `random_password.jwt_secret` (TF taint/reapply) invalidates in-flight tokens until api-server+scheduler restart [terraform/main/12-airflow.tf:29]. Inherent to pinning; document rolling-restart on rotation. → deferred-work.
+- [x] [Review][Defer] [Process] Merging the feature branch → `main` during a verify story front-runs Epic 3 gates (reproducibility 3.1, rollback rehearsal 3.3). Operator-approved + required for ArgoCD to serve the cutover; note for the Epic 2 retro. → deferred-work.
+
+**Dismissed (5):** `jwtSecretName` nesting/key-name "invalid" (Blind High — **disproven**: chart reads key `jwt-secret`, TF provides exactly that at `12-airflow.tf:59`; live app Synced/Healthy with the chart's own jwt-secret pruned); `load_default_connections` removal "re-enables example connections" (Blind High — **disproven**: deprecated since 2.7, Airflow 3 `db migrate` never auto-loads regardless; Edge-Hunter verified + live platform works); one Secret for fernet/api/jwt keys "conflates rotation" (by design — architecture D4); comment dropped key-name map (false — the new comment retains and extends it with `jwt-secret`); `base_url=https` vs no TLS (already verified functional over the tunnel + documented as cosmetic).
 
 ### File List
 
@@ -139,3 +146,4 @@ _Pending code review._
 |------|--------|
 | 2026-06-20 | Story 2.7 created (ready-for-dev). Live deploy-and-verify; folds in all 2.7-deferred runtime checks (Bitnami password trap, redis/broker secrets, base_url/TLS, SimpleAuth admin password, poetry.lock relock, config lint + DAG parse). Operator prerequisites (cluster + `sudo minikube tunnel` + `/etc/hosts`) documented as a hard gate. |
 | 2026-06-20 | Merged feature branch → `main`; `terraform apply` deployed; all ACs verified GREEN on the live cluster (apps Synced/Healthy, migrate done, UI+login, DAG parse + manual run success). Fixed `ScheduleArg` import + wired `jwtSecretName`; relocked poetry; corrected `/etc/hosts`→127.0.0.1. Status → review. |
+| 2026-06-20 | Adversarial code review (3 layers): AC1/2/4/5/6 PASS (AIR301/302 clean), AC3 PASS-with-caveat (ephemeral password). Both Blind-Hunter Highs disproven. 1 accuracy patch applied; 3 low/process follow-ups deferred; 5 dismissed. Status → done. |
