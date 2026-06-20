@@ -17,9 +17,9 @@ Tracks review findings that are real but not actionable in the story under revie
 
 ## Deferred from: Story 1.3 partial completion (2026-06-20)
 
-- **[High → follow-up] Verify GitOps app-sync (airflow/postgres) on the docker cluster.** Story 1.3 verified the cluster (docker, k8s `v1.33.4`, node Ready) + ArgoCD Healthy, but the `argocd` Terraform provider can't reach `argocd.data:443` on the docker driver (node IP `192.168.49.2` not host-routable on macOS). To finish AC#3: run `sudo minikube tunnel -p data` (real terminal) + add `192.168.49.2 argocd.data airflow.data` to `/etc/hosts`, then `terraform apply` → creates the ArgoCD Project + Applications → confirm `airflow` + `postgres` apps Synced/Healthy and no `Pending`/`CrashLoopBackOff`. Then Story 1.3 AC#3/#4 are fully met.
-- **[Med → Epic 2 / SM3] Airflow ingress reachability on docker.** Host access to `airflow.data` (and `argocd.data`) needs `minikube tunnel` running on the docker driver. Factor into the Epic 2 cutover / SM3 verification (`https://airflow.data` reachable).
-- **[Low] minikube IP may change on recreate.** The `/etc/hosts` mapping targets `192.168.49.2` (current `minikube ip -p data`); re-confirm after any recreate.
+- **[RESOLVED in Story 2.7] Verify GitOps app-sync (airflow/postgres) on the docker cluster.** `terraform apply` created the ArgoCD Project + `postgres` + `airflow` Applications; both reach **Synced/Healthy**. Story 1.3 AC#3/#4 now fully met. ⚠️ **Correction:** the host mapping must be `127.0.0.1 argocd.data airflow.data`, **not** `192.168.49.2` — the docker-driver `minikube tunnel` binds the ingress to `127.0.0.1` (the node IP is not host-routable on macOS). The `192.168.49.2` instruction in this note was wrong.
+- **[RESOLVED in Story 2.7] Airflow ingress reachability on docker.** `https://airflow.data` (→ `127.0.0.1` via tunnel) serves the UI; `/api/v2/monitor/health` returns all-healthy; SimpleAuth login works. Ingress is HTTP-only (no `tls:`) — `base_url=https` is cosmetic locally; UI functions over the tunnel on HTTP.
+- **[Low → ongoing] minikube IP / tunnel binding.** Host access uses `127.0.0.1` (docker-tunnel binding), not the node IP. Re-confirm `sudo minikube tunnel -p data` is running after any recreate.
 
 ## Deferred from: code review of 1-3 / docker switch (2026-06-20) → Story 3.4 (docs)
 
@@ -37,15 +37,20 @@ Tracks review findings that are real but not actionable in the story under revie
 ## Deferred from: Story 2.3 (values port) → Stories 2.6 / 2.7
 
 - **[RESOLVED in Story 2.6] Create the `airflow-result-backend` Secret.** `kubernetes_secret.airflow_result_backend` added in `12-airflow.tf` with key `connection = db+postgresql://mini:<pw>@postgres-postgresql.data.svc.cluster.local:5432/mini_data_platform` (the `db+` prefix). (Workers actually persisting results is runtime — Story 2.7.)
-- **[High → Story 2.7] SimpleAuth admin password.** `simple_auth_manager_users: admin:admin` sets the user/role; the password auto-generates to a file (the `admin-password` key in `airflow-config-credentials` is unused). At apply, verify login; if a fixed password is wanted, wire it via the documented 3.2 env mechanism from the secret (OQ4/AR12).
+- **[PARTIALLY RESOLVED in Story 2.7 → new follow-up below] SimpleAuth admin password.** Login **verified working** (`POST /auth/token` → 201). Mechanism resolved: SimpleAuthManager auto-generates the `admin` password to an **ephemeral pod-local file** on each api-server start (the `admin-password` key in `airflow-config-credentials` is still unused). Retrieve via `kubectl -n data logs deploy/airflow-api-server -c api-server | grep "Password for user 'admin'"`. ⚠️ The password **changes on every api-server restart** — see new follow-up for pinning.
 - **[RESOLVED in Story 2.6] Fix `module.application` extraEnv nesting.** The double-nested `values.airflow.airflow.extraEnv` block was removed entirely — `DATA_DB`/`DATA_USER`/`DATA_PASSWORD` had no consumer anywhere in the repo (verified by grep across `airflow/ helms/ terraform/`). `module.application` now carries no inline `values`; all config lives in `values.yaml`. This also removed the last `DATA_PASSWORD` plaintext.
-- **[Med → Story 2.7] Redis/broker hook-annotated secrets.** The chart's redis-password/broker-url secrets carry `helm.sh/hook: pre-install`; under ArgoCD (no helm hooks) confirm they apply at steady state (workers must reach the broker).
-- **[Low → Story 2.7/SM3] base_url https vs ingress TLS.** `config.api.base_url=https://airflow.data` but ingress has no `tls:`; confirm redirects/UI with `minikube tunnel`.
+- **[RESOLVED in Story 2.7] Redis/broker hook-annotated secrets.** Both `airflow-broker-url` and `airflow-redis-password` exist at steady state under ArgoCD; worker log shows `Connected to redis://...@airflow-redis:6379/0` and `celery@... ready`. Broker reachable.
+- **[RESOLVED in Story 2.7] base_url https vs ingress TLS.** UI + `/api/v2/monitor/health` function over the tunnel on HTTP; no redirect loop. `base_url=https` is cosmetic for local. Adding ingress TLS is optional polish (not required for verification).
 
 ## Deferred from: Story 2.4 (DAG/tooling migration) -> Story 2.7 / operator
 
-- **[Med] Relock `poetry.lock`** in a py3.12 env (`poetry lock`) — still resolves Airflow 2.8 vs pyproject `^3.2.2`. Local dev/tests only; deployed image has 3.2.2.
-- **[Med] Run `airflow config lint` + verify new `airflow.sdk` imports resolve + DAG parse** in the Airflow-3 env at the 2.7 cutover (`pre-commit run --hook-stage manual airflow-config-lint`, `airflow dags list`).
+- **[RESOLVED in Story 2.7] Relock `poetry.lock`** — relocked in a py3.12 env: `apache-airflow 2.8.2 → 3.2.2`.
+- **[RESOLVED in Story 2.7] `airflow config lint` + `airflow.sdk` imports + DAG parse** — run in the live Airflow-3 env. Found a real DAG import bug (`ScheduleArg` not re-exported from `airflow.sdk`, fixed). `airflow dags list` → `my_dag_name`, no import errors. config lint's remaining findings are upstream chart defaults — see new follow-up.
+
+## Deferred from: Story 2.7 (deploy & verify) → follow-ups
+
+- **[Med → follow-up] Pin the SimpleAuth admin password (deterministic login).** The password regenerates on every api-server restart (ephemeral file). To pin: set `config.core.simple_auth_manager_passwords_file` to a mounted JSON file `{"admin":"<pw>"}` sourced from a TF secret (we already generate `random_password.admin`; reformat the secret to JSON and add a volume mount on the api-server). Beyond Story 2.7's small-fix scope (needs a TF secret reshape + chart `volumes`/`volumeMounts`). Until then, retrieve the live password from the api-server logs.
+- **[Low → follow-up] `airflow config lint` flags two upstream-chart defaults.** `enable_proxy_fix` (in `[webserver]`, moved to `[fab]` in Airflow 3) and `load_default_connections` (removed in Airflow 3) are baked into the official chart 1.22.0's default `airflow.cfg`, not our values (verified: removing `load_default_connections` from `values.yaml` did not clear it from the rendered configmap). Cosmetic — platform fully functional. Track upstream (apache/airflow helm chart) or override chart config defaults if a clean lint is desired.
 
 ## Deferred from: code review of 2-6-update-terraform-argocd-application-and-wiring (2026-06-20)
 

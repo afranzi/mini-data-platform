@@ -4,7 +4,7 @@ baseline_commit: 305075b2c0c9ecc8edcec15daa1b609afc3279d7
 
 # Story 2.7: Deploy and Verify Airflow 3.0 End-to-End
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -38,32 +38,14 @@ This is a **live-apply** story. Unlike 2.1–2.6 (code-only), it mutates the run
 
 ## Tasks / Subtasks
 
-- [ ] **Task 0 — Confirm operator prerequisites (gate)**
-  - [ ] HALT and confirm with the operator: cluster up, `sudo minikube tunnel -p data` running, `/etc/hosts` has `192.168.49.2 argocd.data airflow.data` (IP re-confirmed via `minikube ip -p data`). Do not proceed until confirmed.
-  - [ ] Pre-flight (read-only): `kubectl --context data get nodes` (Ready, `v1.33.4`), `kubectl get ns data argocd`.
-- [ ] **Task 1 — Live apply + ArgoCD sync (AC: 1, 2)**
-  - [ ] `cd terraform/main && terraform plan` — review (expect the new `airflow-result-backend` secret, postgres password change, airflow app values/depends_on from 2.6). Then `terraform apply`.
-  - [ ] Watch ArgoCD: `kubectl -n argocd get applications` (or `argocd app get airflow` / UI at `https://argocd.data`). Wait for `postgres` then `airflow` → Synced/Healthy. If Postgres password mismatch (AC6 Bitnami trap) blocks metadata auth, fix the PVC/role and re-sync.
-  - [ ] Confirm `migrateDatabaseJob` pod completed (`kubectl -n data get jobs,pods | grep -i migrate`; logs show `db migrate` success). Confirm no `create-user` job.
-  - [ ] `kubectl -n data get pods` — all components Running/Ready, Redis up, no CrashLoop/ImagePull errors. Capture output for the Dev record.
-- [ ] **Task 2 — Broker/result-backend wiring check (AC: 5, 6)**
-  - [ ] Confirm the chart's redis/broker secrets exist at steady state (`kubectl -n data get secret | grep -i 'redis\|broker'`) despite the `pre-install` hook annotation (ArgoCD ignores Helm hooks). Worker logs show successful broker connect.
-  - [ ] Confirm the `airflow-result-backend` secret is mounted and the result backend connects (no Celery result-backend errors in worker/scheduler logs).
-- [ ] **Task 3 — UI + login (AC: 3)**
-  - [ ] Browse `https://airflow.data` (tunnel up). Resolve base_url/TLS behavior (AC6): if redirects/UI break with no ingress `tls:`, add TLS to the ingress or adjust `base_url`, commit, re-sync, document the decision.
-  - [ ] Determine the live SimpleAuth admin password (Task 5) and verify login.
-- [ ] **Task 4 — DAG parse + manual run (AC: 4, 5)**
-  - [ ] Confirm gitSync pulled the `airflow` subPath; `ChesterDag` example appears with no import/deprecation errors (`kubectl -n data exec <scheduler|dag-processor> -- airflow dags list` and check `import_errors`).
-  - [ ] Trigger the example DAG (UI or `airflow dags trigger`); confirm a worker runs it and the run reaches `success`. Capture run/task state evidence.
-- [ ] **Task 5 — SimpleAuth admin password reconcile (AC: 3, deferred 2.3)**
-  - [ ] Inspect how Airflow 3 SimpleAuthManager assigns the `admin` password: it auto-generates to a file in the pod (the `admin-password` key in `airflow-config-credentials` is currently **unused**). Either (a) retrieve the generated password from the pod for login, or (b) wire a fixed password from the TF secret via the documented 3.2 env mechanism (`AIRFLOW__...` / SimpleAuth env) and re-sync. Pick one, implement if (b), and document the login procedure in the Dev record. [OQ4/AR12]
-- [ ] **Task 6 — Python toolchain relock + lint (AC: 6, deferred 2.4)**
-  - [ ] In a py3.12 env: `cd airflow && poetry lock` (relock to Airflow 3.2.2). Commit the relocked `poetry.lock`.
-  - [ ] `pre-commit run --hook-stage manual airflow-config-lint` (needs Airflow installed); confirm `airflow.sdk` imports resolve and `airflow dags list` parses with no errors. Record results.
-- [ ] **Task 7 — Finalize**
-  - [ ] Run `pre-commit` for any code touched (TLS/admin-password/poetry.lock); revert unrelated argocd `<br>`→`<br/>` doc churn (known gotcha).
-  - [ ] Update `deferred-work.md`: mark all folded-in 2.7 items RESOLVED (or re-defer with reason if genuinely out of reach).
-  - [ ] Capture verification evidence (kubectl outputs, DAG run id/state, login proof) in the Dev Agent Record. Commit any code with the `Co-Authored-By` line.
+- [x] **Task 0 — Confirm operator prerequisites (gate)** — cluster Running/Ready `v1.33.4`; tunnel running; `/etc/hosts` corrected to `127.0.0.1 argocd.data airflow.data` (docker tunnel binds localhost, not node IP). `data` ns empty → Bitnami trap moot.
+- [x] **Task 1 — Live apply + ArgoCD sync (AC: 1, 2)** — pushed feature branch + merged to `main` (ArgoCD source-of-truth); `terraform apply` (11 add) created secrets + ArgoCD project + apps. Both `postgres` and `airflow` **Synced/Healthy**; all Airflow 3 components Running; migrate job `Database migration done!`; no create-user job; no CrashLoop/ImagePull.
+- [x] **Task 2 — Broker/result-backend wiring check (AC: 5, 6)** — `airflow-broker-url` + `airflow-redis-password` exist at steady state; worker `Connected to redis://...@airflow-redis:6379/0`, result backend `postgresql://mini:**@postgres-postgresql...`, `celery@... ready`.
+- [x] **Task 3 — UI + login (AC: 3)** — `https://airflow.data` UI 200; `/api/v2/monitor/health` all-healthy; SimpleAuth `POST /auth/token` → 201. base_url/TLS: functions over tunnel on HTTP (https cosmetic).
+- [x] **Task 4 — DAG parse + manual run (AC: 4, 5)** — **found + fixed** a real bug (`ScheduleArg` import); `list-import-errors` → none; `my_dag_name` listed; manual run `story27-verify-1` → **success** (+ auto-scheduled run success).
+- [x] **Task 5 — SimpleAuth admin password reconcile (AC: 3, deferred 2.3)** — mechanism resolved + documented (auto-generated ephemeral file; retrieve from api-server logs). Robust pinning deferred (beyond small-fix scope) → deferred-work.
+- [x] **Task 6 — Python toolchain relock + lint (AC: 6, deferred 2.4)** — `poetry lock` → airflow 2.8.2→3.2.2; `airflow config lint` run in the live env (remaining findings are upstream chart defaults → deferred-work).
+- [x] **Task 7 — Finalize** — pre-commit clean on touched code (isort/black-fixed dag.py); helm-docs no drift; deferred-work updated (folded items RESOLVED + 2 new follow-ups); evidence captured; all committed + pushed to `main`. **Bonus fix:** wired `jwtSecretName` to stop chart-JWT non-determinism → app deterministically Synced/Healthy.
 
 > ⚠️ **Scope boundary:** This story is verification + minimal runtime follow-ups (admin password, TLS, poetry.lock). It is NOT a place to re-architect the chart/values. If a defect needs a values.yaml/topology change beyond a small fix, capture it and raise a `correct-course` rather than expanding scope.
 
@@ -124,14 +106,36 @@ This is a **live-apply** story. Unlike 2.1–2.6 (code-only), it mutates the run
 - **`terraform plan`:** clean — `Plan: 11 to add, 0 to change, 0 to destroy` (5 random_* + 3 kubernetes_secret + argocd project + 2 argocd_application).
 - **🛑 BLOCKER (GitOps source of truth):** The Airflow 3 cutover (Chart.yaml official dep, values.yaml, migrated DAGs from Stories 2.2–2.6) lives ONLY on `feat/airflow-3-k8s-133-upgrade`, which is **not pushed to origin**. `origin/main:helms/airflow/Chart.yaml` is still the OLD community chart (`version 8.8.0`, `appVersion 2.6.3`, dep `airflow-helm/charts`). The `airflow` ArgoCD app uses `target_revision = "HEAD"` (→ origin/main) and gitSync uses `branch: main`. Applying now would deploy the OLD Airflow 2.x stack from main — verification (AC1–5) would not exercise Airflow 3. Resolution requires an operator decision (push + merge to main, or point target_revision/gitSync at the pushed feature branch for verification). HALTED pending decision.
 
+- **Task 1 — `terraform apply` (partial):** ✅ all 5 `random_*` + 3 `kubernetes_secret` (config-credentials, metadata, result-backend) created in `data`. ❌ `module.project.argocd_project` failed: `dial tcp 192.168.49.2:443: operation timed out` (oboukili/argocd provider → `argocd.data:443`).
+- **Connectivity root cause (verified):** node IP `192.168.49.2:443` and `:80` are unreachable from host (5s timeout each); `127.0.0.1:443` is OPEN and returns **HTTP 200 from ArgoCD** with `Host: argocd.data`. The docker-driver `minikube tunnel` binds the ingress to **127.0.0.1**, but `/etc/hosts` maps the `.data` hosts to `192.168.49.2` (node IP, not host-routable on docker). **Fix: map `argocd.data`/`airflow.data` → `127.0.0.1` in `/etc/hosts`** (corrects the stale 192.168.49.2 in the Story 1.3 deferred note). Needs operator sudo. After fixing, `terraform apply` is idempotent (secrets exist; only the 3 argocd resources remain).
+
 ### Completion Notes List
+
+- ✅ **AC1** — `airflow` + `postgres` ArgoCD apps **Synced/Healthy**; all Airflow 3 components Running (api-server, scheduler, dag-processor, triggerer, worker, redis). Completes the deferred Story 1.3 AC#3/#4 GitOps app-sync.
+- ✅ **AC2** — `migrateDatabaseJob` (ArgoCD `hook: Sync`) ran `airflow db migrate` → "Database migration done!"; no create-user job (SimpleAuth).
+- ✅ **AC3** — UI 200 at `airflow.data` (tunnel); `/api/v2/monitor/health` all-healthy; SimpleAuth admin login → 201 token. Password is auto-generated/ephemeral (documented; pinning deferred).
+- ✅ **AC4** — `ChesterDag`/`my_dag_name` parses with **no import errors** (after fixing the `ScheduleArg` import bug found here).
+- ✅ **AC5** — manual DAG run `story27-verify-1` → **success** end-to-end (scheduler → Celery worker → metadata DB).
+- ✅ **AC6** — Bitnami password trap moot (fresh PVC); broker/redis secrets present + worker connected; base_url/TLS functions over tunnel; poetry.lock relocked to 3.2.2; config lint run (remaining = chart defaults).
+- **GitOps decision (operator-approved):** merged feature branch → `main` so ArgoCD (`target_revision=HEAD`) + gitSync (`branch: main`) serve the cutover. Rollback = revert + reapply (NFR5).
+- **Two real fixes shipped during verification:** (1) `ScheduleArg` import path (DAG parse bug); (2) `jwtSecretName` wired to the TF secret (chart was auto-generating a random JWT each render → permanent ArgoCD drift; now deterministically Synced).
+- **Connectivity correction:** docker-driver `minikube tunnel` binds ingress to `127.0.0.1` (not node IP `192.168.49.2`) — `/etc/hosts` fixed accordingly.
 
 ### Review Findings
 
+_Pending code review._
+
 ### File List
+
+- `airflow/mini_dags/chester/dag.py` (modified) — import `ScheduleArg` from `airflow.sdk.definitions.dag` (not re-exported at `airflow.sdk` top level in 3.2.2).
+- `helms/airflow/values.yaml` (modified) — wire `jwtSecretName: airflow-config-credentials` (stop chart JWT non-determinism / ArgoCD drift); remove removed-in-3 `config.database.load_default_connections`.
+- `airflow/poetry.lock` (modified) — relocked `apache-airflow` 2.8.2 → 3.2.2 (py3.12).
+- `docs/implementation-artifacts/deferred-work.md` (modified) — RESOLVED the folded-in 2.7 items + added 2 follow-ups (SimpleAuth password pinning; chart-default config-lint findings) + corrected the `/etc/hosts` IP guidance.
+- `terraform/main/state/*` (state only — `terraform apply` created secrets + ArgoCD project/apps; no `.tf` changes this story).
 
 ## Change Log
 
 | Date | Change |
 |------|--------|
 | 2026-06-20 | Story 2.7 created (ready-for-dev). Live deploy-and-verify; folds in all 2.7-deferred runtime checks (Bitnami password trap, redis/broker secrets, base_url/TLS, SimpleAuth admin password, poetry.lock relock, config lint + DAG parse). Operator prerequisites (cluster + `sudo minikube tunnel` + `/etc/hosts`) documented as a hard gate. |
+| 2026-06-20 | Merged feature branch → `main`; `terraform apply` deployed; all ACs verified GREEN on the live cluster (apps Synced/Healthy, migrate done, UI+login, DAG parse + manual run success). Fixed `ScheduleArg` import + wired `jwtSecretName`; relocked poetry; corrected `/etc/hosts`→127.0.0.1. Status → review. |
