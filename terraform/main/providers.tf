@@ -21,6 +21,11 @@ terraform {
       source  = "oboukili/argocd"
       version = "6.0.3"
     }
+    # https://registry.terraform.io/providers/hashicorp/random
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.6"
+    }
   }
 }
 
