@@ -1,4 +1,5 @@
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 from airflow.models import TaskInstance
 from airflow.sdk import Asset
