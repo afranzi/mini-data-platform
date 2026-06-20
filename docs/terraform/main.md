@@ -110,6 +110,7 @@ timeout 5
 |------|------|
 | [kubernetes_secret.airflow_config_credentials](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
 | [kubernetes_secret.airflow_metadata](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
+| [kubernetes_secret.airflow_result_backend](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
 | [random_bytes.fernet_key](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/bytes) | resource |
 | [random_password.admin](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
 | [random_password.api_secret_key](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |

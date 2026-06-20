@@ -76,6 +76,23 @@ resource "kubernetes_secret" "airflow_metadata" {
   }
 }
 
+# CeleryExecutor result backend (chart's data.resultBackendSecretName). Same DB
+# as the metadata connection but with the SQLAlchemy `db+` prefix Celery expects
+# — the chart does NOT derive this from metadataSecretName. Shares the single
+# random_password.postgres so DB/metadata/result-backend never disagree.
+resource "kubernetes_secret" "airflow_result_backend" {
+  metadata {
+    name      = "airflow-result-backend"
+    namespace = module.namespace.name
+  }
+
+  type = "Opaque"
+
+  data = {
+    "connection" = "db+postgresql://mini:${random_password.postgres.result}@postgres-postgresql.${module.namespace.name}.svc.cluster.local:5432/mini_data_platform"
+  }
+}
+
 module "project" {
   source                     = "../modules/k8s/argocd/project"
   cluster_resource_allowlist = [{ group : "*", kind : "*" }]
@@ -101,7 +118,9 @@ module "application_db" {
   parameters = {
     "auth.database" : "mini_data_platform"
     "auth.username" : "mini"
-    "auth.password" : "data"
+    # Reconciled to the generated password (NFR3) — matches the airflow-metadata
+    # and airflow-result-backend connection secrets (one source: random_password.postgres).
+    "auth.password" : random_password.postgres.result
     # bitnamilegacy image sources (FR18/D8) — frozen free images after the 2025
     # Bitnami catalog change. All overrides live here (single place, not values).
     "image.repository" : "bitnamilegacy/postgresql"
@@ -121,15 +140,14 @@ module "application" {
   path             = "helms/airflow"
   target_revision  = "HEAD"
 
-  values = {
-    airflow = {
-      airflow = {
-        extraEnv = [
-          { name : "DATA_DB", value : "mini_data_platform" },
-          { name : "DATA_USER", value : "mini" },
-          { name : "DATA_PASSWORD", value : "data" },
-        ]
-      }
-    }
-  }
+  # All chart config lives in helms/airflow/values.yaml (official-chart schema,
+  # Story 2.3). No inline `values` here: the former DATA_* extraEnv was community
+  # -chart vestigial (double-nested airflow.airflow.*) with no consumer in repo.
+
+  # Secrets must exist before ArgoCD syncs the chart (architecture D4 ordering).
+  depends_on = [
+    kubernetes_secret.airflow_config_credentials,
+    kubernetes_secret.airflow_metadata,
+    kubernetes_secret.airflow_result_backend,
+  ]
 }
