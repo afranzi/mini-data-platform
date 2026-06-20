@@ -1,6 +1,6 @@
 from typing import Callable
 
-from airflow.utils.context import Context
+from airflow.sdk import Context
 
 
 def chain_alerts(alert_fns: list[Callable]) -> Callable[[Context], None]:

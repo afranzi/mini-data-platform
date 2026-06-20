@@ -16,15 +16,32 @@ repos:
         args: [--allow-missing-credentials]
       - id: detect-private-key
   - repo: https://github.com/asottile/pyupgrade
-    rev: v2.31.1
+    rev: v3.15.2
     hooks:
       - id: pyupgrade
-        args: [--py39-plus]
-  - repo: https://github.com/python/black
-    rev: 22.3.0
+        args: [--py312-plus]
+  - repo: https://github.com/psf/black
+    rev: 24.4.2
     hooks:
       - id: black
         language_version: python3
+  # Airflow-3 migration linting (FR16): Ruff AIR301/AIR302 + `airflow config lint`.
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.11.6
+    hooks:
+      - id: ruff
+        args: [--select, "AIR301,AIR302"]
+  - repo: local
+    hooks:
+      - id: airflow-config-lint
+        name: airflow config lint
+        entry: airflow config lint
+        language: system
+        pass_filenames: false
+        always_run: true
+        # Requires Airflow installed → runs in CI / the Airflow image / `poetry run`,
+        # not on every local commit. Invoke via `pre-commit run --hook-stage manual`.
+        stages: [manual]
   - repo: https://github.com/asottile/add-trailing-comma
     rev: v2.4.0
     hooks:

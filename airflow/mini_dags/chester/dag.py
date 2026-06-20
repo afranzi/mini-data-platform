@@ -1,11 +1,9 @@
 from datetime import datetime, timedelta
 
+from airflow.configuration import conf as airflow_conf
+from airflow.sdk import DAG, ScheduleArg
 from mini_dags.chester.filters import chester_filters
 from mini_dags.chester.macros import chester_macros
-
-from airflow import DAG
-from airflow.configuration import conf as airflow_conf
-from airflow.models.dag import ScheduleArg
 
 
 class ChesterDag(DAG):

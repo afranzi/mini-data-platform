@@ -1,9 +1,8 @@
 import datetime
 
+from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow.sdk import DAG  # noqa
 from mini_dags.chester.dag import ChesterDag
-
-from airflow import DAG  # noqa
-from airflow.operators.empty import EmptyOperator
 
 with ChesterDag(
     dag_id="my_dag_name",

@@ -5,8 +5,9 @@ description = "Mini Data Platform DAGs"
 authors = ["afranzi"]
 
 [tool.poetry.dependencies]
-python = ">=3.10.8,<3.11"
-apache-airflow = "^2.8.0"
+python = ">=3.12,<3.13"
+apache-airflow = "^3.2.2"
+apache-airflow-providers-standard = "*"
 
 [tool.poetry.group.dev.dependencies]
 tox = "^4.13.0"
