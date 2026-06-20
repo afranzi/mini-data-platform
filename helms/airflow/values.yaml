@@ -44,8 +44,6 @@ airflow:
       dags_are_paused_at_creation: 'True'
     api:
       base_url: "https://airflow.data"
-    database:
-      load_default_connections: 'False'
     logging:
       remote_logging: 'False'
 
