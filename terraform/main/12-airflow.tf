@@ -102,6 +102,11 @@ module "application_db" {
     "auth.database" : "mini_data_platform"
     "auth.username" : "mini"
     "auth.password" : "data"
+    # bitnamilegacy image sources (FR18/D8) — frozen free images after the 2025
+    # Bitnami catalog change. All overrides live here (single place, not values).
+    "image.repository" : "bitnamilegacy/postgresql"
+    "volumePermissions.image.repository" : "bitnamilegacy/os-shell"
+    "metrics.image.repository" : "bitnamilegacy/postgres-exporter"
   }
 }
 
