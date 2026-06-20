@@ -3,9 +3,9 @@ name: airflow
 description: This chart aims to deploy an Airflow setup inside minikube, so we validate and develop Airflow inside a local K8s cluster.
 maintainers:
   - name: Albert Franzi
-version: 8.8.0
-appVersion: 2.6.3
+version: 1.0.0
+appVersion: 3.2.2
 dependencies:
-  - name: airflow  # https://artifacthub.io/packages/helm/airflow-helm/airflow
-    version: 8.8.0
-    repository: https://airflow-helm.github.io/charts  # https://airflow.apache.org
+  - name: airflow  # official Apache chart — https://airflow.apache.org
+    version: 1.22.0
+    repository: https://airflow.apache.org

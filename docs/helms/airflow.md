@@ -1,6 +1,6 @@
 # Airflow
 
-![Version: 8.8.0](https://img.shields.io/badge/Version-8.8.0-informational?style=flat-square) ![AppVersion: 2.6.3](https://img.shields.io/badge/AppVersion-2.6.3-informational?style=flat-square)
+![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![AppVersion: 3.2.2](https://img.shields.io/badge/AppVersion-3.2.2-informational?style=flat-square)
 
 !!! tip "Community Chart"
     In our project, we use the [Airflow Community Helm chart](https://artifacthub.io/packages/helm/airflow-helm/airflow)
@@ -49,7 +49,7 @@ The most important properties when defining our Airflow values are:
 
 | Repository | Name | Version |
 |------------|------|---------|
-| https://airflow-helm.github.io/charts | airflow | 8.8.0 |
+| https://airflow.apache.org | airflow | 1.22.0 |
 
 ## Values
 
