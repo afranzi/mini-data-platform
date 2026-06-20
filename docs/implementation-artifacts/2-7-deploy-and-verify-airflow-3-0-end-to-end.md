@@ -120,6 +120,10 @@ This is a **live-apply** story. Unlike 2.1–2.6 (code-only), it mutates the run
 
 ### Debug Log References
 
+- **Pre-flight (Task 0):** cluster `data` Running, node Ready `v1.33.4`; `sudo minikube tunnel -p data` running; `/etc/hosts` has `192.168.49.2 argocd.data airflow.data`. ArgoCD installed & all pods Running; ingress `argocd.data → 192.168.49.2`. **`data` namespace empty (no workloads, no Postgres PVC)** → Bitnami first-init password trap (AC6 High) is MOOT (fresh init).
+- **`terraform plan`:** clean — `Plan: 11 to add, 0 to change, 0 to destroy` (5 random_* + 3 kubernetes_secret + argocd project + 2 argocd_application).
+- **🛑 BLOCKER (GitOps source of truth):** The Airflow 3 cutover (Chart.yaml official dep, values.yaml, migrated DAGs from Stories 2.2–2.6) lives ONLY on `feat/airflow-3-k8s-133-upgrade`, which is **not pushed to origin**. `origin/main:helms/airflow/Chart.yaml` is still the OLD community chart (`version 8.8.0`, `appVersion 2.6.3`, dep `airflow-helm/charts`). The `airflow` ArgoCD app uses `target_revision = "HEAD"` (→ origin/main) and gitSync uses `branch: main`. Applying now would deploy the OLD Airflow 2.x stack from main — verification (AC1–5) would not exercise Airflow 3. Resolution requires an operator decision (push + merge to main, or point target_revision/gitSync at the pushed feature branch for verification). HALTED pending decision.
+
 ### Completion Notes List
 
 ### Review Findings
