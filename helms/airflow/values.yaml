@@ -11,10 +11,13 @@ airflow:
       tag: "3.2.2-python3.12"
 
   # --- Secrets (Terraform-managed, Story 2.1) ---
-  # Chart reads keys: `fernet-key`, `api-secret-key` (airflow-config-credentials)
-  # and `connection` (airflow-metadata). JWT is chart-auto-generated (>=1.17).
+  # Chart reads keys: `fernet-key`, `api-secret-key`, `jwt-secret`
+  # (airflow-config-credentials) and `connection` (airflow-metadata).
+  # jwtSecretName is wired so the chart does NOT auto-generate a random JWT
+  # secret each render (which causes permanent ArgoCD OutOfSync drift) — D4.
   fernetKeySecretName: airflow-config-credentials
   apiSecretKeySecretName: airflow-config-credentials
+  jwtSecretName: airflow-config-credentials
   data:
     metadataSecretName: airflow-metadata
     # CeleryExecutor needs a result backend (the chart does NOT derive it from
