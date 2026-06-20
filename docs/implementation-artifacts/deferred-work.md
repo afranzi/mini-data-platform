@@ -47,6 +47,10 @@ Tracks review findings that are real but not actionable in the story under revie
 - **[Med] Relock `poetry.lock`** in a py3.12 env (`poetry lock`) — still resolves Airflow 2.8 vs pyproject `^3.2.2`. Local dev/tests only; deployed image has 3.2.2.
 - **[Med] Run `airflow config lint` + verify new `airflow.sdk` imports resolve + DAG parse** in the Airflow-3 env at the 2.7 cutover (`pre-commit run --hook-stage manual airflow-config-lint`, `airflow dags list`).
 
+## Deferred from: code review of 2-6-update-terraform-argocd-application-and-wiring (2026-06-20)
+
+- **[High → Story 2.7] Bitnami Postgres only honors `auth.password` on first PVC init.** Story 2.6 set `module.application_db.auth.password = random_password.postgres.result` and pointed all three connection secrets at the same password. But the Bitnami `postgresql` chart only applies `auth.password` when the data dir is empty (first init). If the `postgres` app already has a populated PVC at the 2.7 live apply, the role keeps the old `data` password while Airflow's metadata + result-backend connections use the new generated one → auth failure, despite a clean `terraform apply`/Synced state. At 2.7: confirm the postgres PVC is fresh (cluster was recreated in Story 1.3, so likely empty), or recreate the PVC / `ALTER ROLE mini PASSWORD '<generated>'`. Both independent review layers flagged this. [terraform/main/12-airflow.tf:123]
+
 ### Out-of-scope notes (operator / correct-course, not story-assigned)
 - **k8s 1.33 EOL is 2026-06-28** (≈9 days after the 1.33 target was locked). The 1.33 target is fixed by the PRD/Architecture; revisiting it (e.g. toward 1.34) would be a `correct-course` decision, not a dev change.
 - **terraform-docs/helm-docs version drift** — the local terraform-docs emits `<br/>` where committed argocd-module READMEs have `<br>`. Recommend a housekeeping commit to align local tool versions with CI so pre-commit doesn't churn unrelated docs.

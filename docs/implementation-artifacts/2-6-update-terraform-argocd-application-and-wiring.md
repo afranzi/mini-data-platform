@@ -4,7 +4,7 @@ baseline_commit: 3373dde862296d0ab1b1190b4b607f557154cc51
 
 # Story 2.6: Update Terraform ArgoCD Application and Wiring
 
-Status: review
+Status: done
 
 ## Story
 
@@ -137,7 +137,12 @@ claude-opus-4-8 (1M context)
 
 ### Review Findings
 
-_Pending code review._
+_Adversarial review 2026-06-20 (Blind Hunter + Edge Case Hunter + Acceptance Auditor). All 6 ACs PASS (Acceptance Auditor: no violations, no scope creep). 1 patch, 1 deferred, 9 dismissed._
+
+- [x] [Review][Patch] D4 secret-cluster header comment omits `data.resultBackendSecretName` [terraform/main/12-airflow.tf:12-17] — cosmetic: the header lists fernet/api/metadata secret refs but not the new result-backend one. **Applied:** added the result-backend ref (and corrected the stale "Story 2.3 can reference" → "values.yaml can reference").
+- [x] [Review][Defer] [High] Bitnami Postgres only applies `auth.password` on first PVC init [terraform/main/12-airflow.tf:123] — deferred to Story 2.7. On an already-populated postgres PVC the generated password is silently ignored (role keeps old `data`), so metadata + result-backend auth would fail despite a clean `terraform apply`. Verify a fresh/empty PVC at the 2.7 live apply, else recreate the PVC or `ALTER ROLE mini PASSWORD`.
+
+**Dismissed (9):** namespace/host "inconsistency" (false positive — both secrets use `${module.namespace.name}`); `airflow_config_credentials` "not defined" (false positive — defined at :47); `db+` double-prefix risk (**verified correct** — chart's `result-backend-connection-secret.yaml` is gated on `(not resultBackendSecretName)`, so with our secret set the chart consumes `connection` verbatim and never re-adds `db+`); broker/Redis secret not TF-managed (already tracked for 2.7 in deferred-work); host/user/db literal drift (consciously declined + documented this story); credential in TF state / second copy (by design — local backend; NFR3 concerns committed plaintext; the chart requires a distinct result-backend secret); password leading-digit/userinfo quirk (`special=false` → alphanumeric, URL-safe); secret `sensitive`/lifecycle (provider marks `kubernetes_secret.data` sensitive); `depends_on` vs async ArgoCD sync (holds here — TF applies the three secrets synchronously *before* the `argocd_application` CR exists, so they are in-cluster before ArgoCD begins syncing).
 
 ### File List
 
@@ -152,3 +157,4 @@ _Pending code review._
 |------|--------|
 | 2026-06-20 | Story 2.6 created (ready-for-dev). Folds in deferred items: result-backend secret (2.3), postgres-password reconcile + plaintext removal / NFR3 (2.1), extraEnv nesting fix + DATA_* removal (2.3), secret-before-sync depends_on (2.1). Code-only; validate is the gate (live apply = 2.7). |
 | 2026-06-20 | Implemented all 6 ACs in `12-airflow.tf`; `terraform validate` Success; no plaintext password remains (NFR3). Reverted unrelated argocd doc churn. Status → review. |
+| 2026-06-20 | Adversarial code review (3 layers): all 6 ACs PASS. Applied 1 cosmetic patch (D4 header comment); deferred 1 High (Bitnami first-init password trap) to Story 2.7; 9 dismissed (incl. `db+` double-prefix verified correct against chart template). Status → done. |

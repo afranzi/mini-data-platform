@@ -56,7 +56,7 @@ development_status:
   2-3-port-values-yaml-to-the-official-chart-schema-with-airflow-3-topology: done
   2-4-migrate-dag-code-and-python-tooling-to-airflow-3: done
   2-5-source-postgres-images-from-bitnamilegacy: done
-  2-6-update-terraform-argocd-application-and-wiring: review
+  2-6-update-terraform-argocd-application-and-wiring: done
   2-7-deploy-and-verify-airflow-3-0-end-to-end: backlog
   epic-2-retrospective: optional
 
