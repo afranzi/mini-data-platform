@@ -53,7 +53,8 @@ resource "kubernetes_secret" "airflow_config_credentials" {
   type = "Opaque"
 
   data = {
-    "fernet-key"     = random_bytes.fernet_key.base64
+    # url-safe base64 to exactly match Python Fernet.generate_key() output
+    "fernet-key"     = replace(replace(random_bytes.fernet_key.base64, "+", "-"), "/", "_")
     "api-secret-key" = random_password.api_secret_key.result
     "jwt-secret"     = random_password.jwt_secret.result
     "admin-password" = random_password.admin.result
