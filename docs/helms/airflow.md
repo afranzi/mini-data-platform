@@ -2,12 +2,11 @@
 
 ![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![AppVersion: 3.2.2](https://img.shields.io/badge/AppVersion-3.2.2-informational?style=flat-square)
 
-!!! tip "Community Chart"
-    In our project, we use the [Airflow Community Helm chart](https://artifacthub.io/packages/helm/airflow-helm/airflow)
+!!! tip "Official Apache Chart"
+    In our project, we use the [official Apache Airflow Helm chart](https://airflow.apache.org/docs/helm-chart/stable/index.html)
     to deploy Airflow on our Minikube cluster.
 
-    This chart is our favorite one because it's flexible and easy to use, making it perfect for getting Airflow up
-    running in a Kubernetes environment like ours.
+    We adopted the upstream-supported chart (Airflow 3.x) so the local platform mirrors the production blueprint.
 
 ---
 
