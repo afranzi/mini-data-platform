@@ -1,6 +1,8 @@
 # Kubernetes 1.29 → 1.33 API & Provider Audit
 
-**Story:** 1.2 · **Date:** 2026-06-19 · **Target:** Kubernetes `v1.33.10` · **Branch:** `feat/airflow-3-k8s-133-upgrade`
+**Story:** 1.2 · **Date:** 2026-06-19 · **Target:** Kubernetes `v1.33.x` · **Branch:** `feat/airflow-3-k8s-133-upgrade`
+
+> **Correction (2026-06-20):** the target patch was originally written as `v1.33.10`, but minikube has no such version — its latest 1.33 patch is **`v1.33.4`** (corrected in `01-cluster.tf` during Story 1.3). The API-audit conclusions below are **patch-independent** (API removals are per-*minor*, 1.29→1.33), so they hold unchanged for `v1.33.4`. The minikube **driver** was also switched `qemu2`→`docker` (IT firewall blocks VM-driver SSH) — see `sprint-change-proposal-2026-06-20`.
 
 Audit produced for FR2 / AR13 / AR14 to inform the Airflow 3 cutover (Epic 2) and the cluster recreate (Story 1.3).
 
