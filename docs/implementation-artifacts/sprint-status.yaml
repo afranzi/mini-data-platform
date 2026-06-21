@@ -63,7 +63,7 @@ development_status:
   # Epic 3: Validation, Reproducibility & Documentation
   epic-3: in-progress
   3-1-clean-state-reproducibility-test: done
-  3-2-resource-footprint-and-secret-hygiene-verification: ready-for-dev
+  3-2-resource-footprint-and-secret-hygiene-verification: done
   # 3-3-rollback-rehearsal-and-documentation: DESCOPED 2026-06-21 (operator decision) —
   #   old-version rollback (Airflow 2.8.2 / k8s 1.29.2) not needed; platform is local/
   #   disposable and Story 3.1 already proved clean rebuild of the new stack. NFR5 descoped.

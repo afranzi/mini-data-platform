@@ -4,7 +4,7 @@ baseline_commit: 3030aa174786be4815ea4d87e169bde05c8ffa3a
 
 # Story 3.2: Resource-Footprint and Secret-Hygiene Verification
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -22,19 +22,9 @@ so that the upgrade respects local resource limits and commits no secrets (NFR2,
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1 — Footprint: scheduling + OOM (AC: 1)**
-  - [ ] `kubectl --context data -n data get pods` — confirm all `Running`/`Completed`, **none `Pending`**. For any `Pending`, `kubectl describe` to check for `FailedScheduling` (insufficient cpu/memory).
-  - [ ] Check for OOM: `kubectl --context data -n data get pods -o json` → scan `status.containerStatuses[*].lastState.terminated.reason` and `restartCount` for `OOMKilled` / nonzero restarts.
-  - [ ] Capture node capacity vs usage: `kubectl --context data describe node data` (Allocatable + Allocated resources / requests) and, if metrics-server is up, `kubectl top pods -n data` / `kubectl top node`.
-  - [ ] Note whether the minikube `--cpus`/`--memory` default (`modules/k8s/minicluster/00-variables.tf`, currently `8g`/`4`) was sufficient or had to be raised. If raised, document the value applied (CM1 lever).
-- [ ] **Task 2 — Secret hygiene: repo scan (AC: 2)**
-  - [ ] Scan tracked files for **secret values** (not names): grep the working tree + check that `terraform/main/state/` is gitignored. Look for fernet-key-shaped strings (44-char base64), long random tokens, `password = "..."` literals, `admin:<password>`, connection strings with embedded passwords.
-  - [ ] Confirm `git ls-files` does NOT include `terraform/main/state/terraform.tfstate*` (state holds the real secret values; it must be gitignored). Check `.gitignore`.
-  - [ ] Confirm `values.yaml` / `12-airflow.tf` reference secrets by **name only** (no inline values) — cross-check the NFR3 work from Stories 2.1/2.6 held (no `"data"` plaintext, randoms in TF only).
-  - [ ] Optionally run `detect-secrets`/`gitleaks` over tracked files if available; triage any hits (the `*SecretName` keyword false-positives are expected — they're names, not values).
-- [ ] **Task 3 — Record + finalize (AC: 3)**
-  - [ ] Record footprint numbers + secret-scan result in the Dev Agent Record. If the minikube lever was raised, note it in the runbook/deferred-work.
-  - [ ] No code expected; if a fix was needed, run `pre-commit` + revert unrelated doc churn. Commit any notes with the `Co-Authored-By` line.
+- [x] **Task 1 — Footprint: scheduling + OOM (AC: 1)** — all 8 `data` pods `Running` (api-server, scheduler 2/2, dag-processor 3/3, triggerer 3/3, worker 2/2, redis, statsd, postgres); **0 Pending, 0 OOMKilled, 0 restarts**. Node `data`: allocatable 4 cpu / ~8Gi; allocated **requests 1906m cpu (47%) / 3020Mi mem (38%)**, limits 2 cpu (50%) / 2218Mi (27%). Stack fits the default `8g`/`4` — **minikube lever NOT raised**.
+- [x] **Task 2 — Secret hygiene: repo scan (AC: 2)** — `git ls-files` has **no tfstate** (`.gitignore`: `*.tfstate`, `*.tfstate.*`); no `"data"` plaintext password in `12-airflow.tf`; no connection strings with embedded passwords (only `${random_password...}` interpolations); no hardcoded secret-value literals; no fernet-key-shaped strings in tracked files; `values.yaml` references secrets by **name only** (`*SecretName: airflow-*`). NFR3 holds repo-wide.
+- [x] **Task 3 — Record + finalize (AC: 3)** — footprint + secret-scan evidence recorded below. No code change needed (clean result). No lever raise to document.
 
 ## Dev Notes
 
@@ -82,12 +72,22 @@ so that the upgrade respects local resource limits and commits no secrets (NFR2,
 
 ### Completion Notes List
 
+- ✅ **AC1 (NFR2/CM1)** — no Pending, no OOMKilled, 0 restarts across all 8 `data` pods. Node footprint: requests 47% cpu / 38% mem on the default `8g`/`4` node → comfortable headroom; the minikube `--cpus`/`--memory` lever was **not** raised.
+- ✅ **AC2 (NFR3)** — repo-wide scan clean: no committed fernet key / api-secret / JWT / admin / postgres password; no embedded passwords in connection strings (interpolations only); no tfstate tracked (gitignored). Secret material lives only in local TF state + in-cluster k8s Secrets. `*SecretName:` lines are references (names), not values.
+- ✅ **AC3** — evidence recorded here. No code change (clean verification); no lever raise to document.
+- Confirms the NFR3 work from Stories 2.1/2.6 held across the whole repo, and the AR10 conservative sizing (Story 2.3) fits the local node.
+
 ### Review Findings
 
+_Code review 2026-06-21 — **clean**. No-source verification story; the review adversarially re-checked completeness: the secret scan was broadened from `*.tf/*.yaml/*.py` to **all tracked files** (connection-string passwords, fernet-shape/long-token literals, the `fernet-key`/`api-secret-key`/`admin-password` key names) → still clean (only hit is `"admin-password" = random_password.admin.result`, a name→random-ref, value in state only). OOM gate confirmed robust (lastState + restartCount, all pods stable 45m since the 3.1 rebuild, no churn). All 3 ACs PASS; no findings._
+
 ### File List
+
+- _(none — read-only verification; no source files changed. Evidence captured in this story's Dev Agent Record.)_
 
 ## Change Log
 
 | Date | Change |
 |------|--------|
 | 2026-06-21 | Story 3.2 created (ready-for-dev). Read-only footprint (no Pending/OOM, node capacity) + secret-hygiene repo scan (no committed plaintext secrets; state gitignored). Non-destructive verification against the live 3.1 stack. |
+| 2026-06-21 | Verified: footprint 47% cpu / 38% mem, no Pending/OOM (lever not raised); secret-hygiene scan clean repo-wide (NFR3 holds). No code change. Status → review. |
