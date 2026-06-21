@@ -27,7 +27,7 @@ No modules.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_argocd_namespace"></a> [argocd\_namespace](#input\_argocd\_namespace) | Namespace where the ArgoCD server has been deployed | `string` | n/a | yes |
-| <a name="input_automated_sync"></a> [automated\_sync](#input\_automated\_sync) | Enable ArgoCD automated sync policy (prune + self-heal) so the application self-reconciles to the Git desired state without a manual sync. Set false for apps that must be synced manually. | `bool` | `true` | no |
+| <a name="input_automated_sync"></a> [automated\_sync](#input\_automated\_sync) | Enable ArgoCD automated sync (prune + self-heal): the app self-reconciles to Git with no manual sync. prune deletes resources dropped from Git; self\_heal reverts manual changes. Set false for manual-sync apps. | `bool` | `true` | no |
 | <a name="input_chart"></a> [chart](#input\_chart) | Repository path with helm | `string` | `null` | no |
 | <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | Cluster url | `string` | `"https://kubernetes.default.svc"` | no |
 | <a name="input_history_limit"></a> [history\_limit](#input\_history\_limit) | History limit | `number` | `3` | no |

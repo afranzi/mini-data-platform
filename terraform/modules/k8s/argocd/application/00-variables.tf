@@ -71,9 +71,13 @@ variable "values" {
 }
 
 variable "automated_sync" {
-  type        = bool
-  default     = true
-  description = "Enable ArgoCD automated sync policy (prune + self-heal) so the application self-reconciles to the Git desired state without a manual sync. Set false for apps that must be synced manually."
+  type    = bool
+  default = true
+  # WARNING: when true this enables `prune` (ArgoCD DELETES resources removed
+  # from the Git desired state) and `self_heal` (ArgoCD REVERTS out-of-band/manual
+  # changes). Self-reconciles with no manual sync, but overrides break-glass edits.
+  # Set false for apps that must be synced manually or tolerate manual drift.
+  description = "Enable ArgoCD automated sync (prune + self-heal): the app self-reconciles to Git with no manual sync. prune deletes resources dropped from Git; self_heal reverts manual changes. Set false for manual-sync apps."
 }
 
 variable "sync_options" {

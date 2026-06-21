@@ -4,7 +4,7 @@ baseline_commit: 8ad8f0157144e141dd702ee8e70ea0ead36d3c69
 
 # Story 3.1: Clean-State Reproducibility Test
 
-Status: review
+Status: done
 
 ## Story
 
@@ -95,7 +95,7 @@ These are environment prerequisites, **not** "manual post-steps" of the platform
 ### Completion Notes List
 
 - ✅ **AC1** clean teardown — `terraform destroy` (two passes; ArgoCD cascade-delete races the project delete) left a clean state.
-- ✅ **AC2** rebuild — full platform (k8s v1.33.4 + ArgoCD + Postgres + Airflow 3) via a **documented two-phase apply** (argocd-provider bootstrap can't configure before ArgoCD exists). Zero manual *workload* steps; the two host interjections (tunnel restart; the `-target` bootstrap) are env/ordering, captured in the runbook.
+- ⚠️ **AC2 (PASS-with-caveat)** rebuild — full platform (k8s v1.33.4 + ArgoCD + Postgres + Airflow 3) came up with **zero manual workload steps**. Caveat: it is **not a literal single-pass** apply — it's a documented **two-phase** apply (argocd-provider bootstrap), Phase A needed one retry (ingress-nginx admission-webhook readiness race), and a mid-way tunnel restart was required. The argocd-bootstrap + tunnel are legitimate env/ordering prerequisites (spec-sanctioned); the ingress-nginx retry is a real missing-wait → raised to Low-Med in deferred-work as the gap to literal single-pass.
 - ✅ **AC3 (core deliverable)** — added automated `syncPolicy` to the application module; on the clean rebuild both apps **self-reconciled to Synced/Healthy with no manual sync**. This closes the explicit 2.7 gap (apps previously needed `kubectl patch operation`).
 - ✅ **AC4** — end-state matches 2.7: all components Running, migrate sync-hook Completed, `/api/v2/monitor/health` all-healthy, `my_dag_name` parses (no import errors — `ScheduleArg` fix is on `main`).
 - ✅ **AC5** — `docs/runbooks/clean-state-bring-up.md` records the full reproducible procedure incl. the two retry points + SimpleAuth login.
@@ -104,7 +104,16 @@ These are environment prerequisites, **not** "manual post-steps" of the platform
 
 ### Review Findings
 
-_Pending code review._
+_Adversarial review 2026-06-21 (Blind + Edge Case + Acceptance). AC1/3/4/5 PASS; AC2 PASS-with-caveat (two-phase apply, not literal single-pass). 2 patches, 4 deferred, 5 dismissed. The scary "prune → Postgres data loss" High was disproven (PVC is an STS volumeClaimTemplate, not ArgoCD-prunable)._
+
+- [x] [Review][Patch] AC2 over-graded — corrected to PASS-with-caveat: full platform + zero *workload* steps + documented ordering is real, but it's a **two-phase** apply (argocd-provider bootstrap) with an ingress-nginx readiness retry + a tunnel restart, not a literal single-pass.
+- [x] [Review][Patch] `automated_sync` variable description oversold safety — updated to warn it enables `prune` (resource deletion) + `self_heal` (overrides out-of-band changes).
+- [x] [Review][Defer] [Low-Med] Ingress-nginx admission-webhook readiness race makes Phase A non-deterministic (a real missing-wait, not just ordering) — the one gap between "documented-retry reproducible" and literal single-pass. Raised from Low; concrete fix (helm `wait`/`time_sleep`/dependency) in deferred-work.
+- [x] [Review][Defer] [Low] `prune`/`self_heal` are hardcoded-on and not independently tunable; for a stateful app, separate toggles + a non-pruning option would be safer (acceptable here — PVC proven safe, platform disposable). + the `automated_sync=false` path (sync_policy with only sync_options) is untested.
+- [x] [Review][Defer] [Low-Med] `self_heal` can fight runtime mutations: Postgres password regen → STS auth crashloop (ties to the existing Bitnami first-init item); manual worker scaling reverted; SimpleAuth runtime edits reverted (admin:admin is canonical, accept).
+- [x] [Review][Defer] [Low] migrate Sync-hook Job has no explicit `hook-delete-policy` — could show OutOfSync / re-run under auto-sync (largely mitigated by ttl=300; apps verified Synced/Healthy, so not biting). One-line `values.yaml` annotation to harden.
+
+**Dismissed (5):** prune → Postgres data loss (disproven — STS volumeClaimTemplate PVC not prunable, retention disabled); policy churns existing apps on next apply (no-op — already applied + verified in the rebuild); `CreateNamespace=false` foot-gun (namespace is TF-managed via `module.namespace`, always exists; verified); `allow_empty=false` false-safety (it IS the safer setting; partial-render prune is theoretical); no `retry` block (provider default is fine for a 2-app local platform).
 
 ### File List
 
@@ -122,3 +131,4 @@ _Pending code review._
 |------|--------|
 | 2026-06-21 | Story 3.1 created (ready-for-dev). Clean-state reproducibility test. Core deliverable: add `syncPolicy.automated` to the ArgoCD application module (2.7 proved apps don't self-reconcile). Confronts the argocd-provider bootstrap ordering + documents the host prerequisites (tunnel + /etc/hosts→127.0.0.1) and a reproducibility runbook. Destroy/recreate is live + gated on operator approval. |
 | 2026-06-21 | Implemented: automated syncPolicy added; full destroy + clean two-phase rebuild verified on the live cluster — apps **auto-reconciled to Synced/Healthy with no manual sync**, health + DAG parse green. Two retry-recoverable clean-apply races logged + deferred. Runbook written. Status → review. |
+| 2026-06-21 | Adversarial code review (3 layers): AC1/3/4/5 PASS, AC2 PASS-with-caveat (two-phase, not literal single-pass). "prune→Postgres data loss" High disproven (STS volumeClaimTemplate). 2 patches applied (AC2 grading honesty; variable-description safety warning); 4 Low/Low-Med deferred (ingress-nginx readiness race raised as the single-pass gap). Status → done. |
