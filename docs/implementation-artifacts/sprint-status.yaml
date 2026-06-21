@@ -61,8 +61,8 @@ development_status:
   epic-2-retrospective: optional
 
   # Epic 3: Validation, Reproducibility & Documentation
-  epic-3: backlog
-  3-1-clean-state-reproducibility-test: backlog
+  epic-3: in-progress
+  3-1-clean-state-reproducibility-test: ready-for-dev
   3-2-resource-footprint-and-secret-hygiene-verification: backlog
   3-3-rollback-rehearsal-and-documentation: backlog
   3-4-regenerate-documentation: backlog
