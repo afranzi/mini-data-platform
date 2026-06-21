@@ -61,11 +61,11 @@ development_status:
   epic-2-retrospective: optional
 
   # Epic 3: Validation, Reproducibility & Documentation
-  epic-3: in-progress
+  epic-3: done
   3-1-clean-state-reproducibility-test: done
   3-2-resource-footprint-and-secret-hygiene-verification: done
   # 3-3-rollback-rehearsal-and-documentation: DESCOPED 2026-06-21 (operator decision) —
   #   old-version rollback (Airflow 2.8.2 / k8s 1.29.2) not needed; platform is local/
   #   disposable and Story 3.1 already proved clean rebuild of the new stack. NFR5 descoped.
-  3-4-regenerate-documentation: backlog
+  3-4-regenerate-documentation: done
   epic-3-retrospective: optional

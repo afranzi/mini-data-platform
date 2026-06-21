@@ -12,7 +12,7 @@ For the mini-data-platform deployment we will require:
 - :simple-kubernetes: __[minikube](https://minikube.sigs.k8s.io/)__ to deploy the K8s cluster
 - :simple-terraform: __[tfenv](https://github.com/tfutils/tfenv)__ to manage our Terraform version
 - :simple-docker: __[colima](https://github.com/abiosoft/colima)__ for running docker
-- :simple-docker: __[qemu driver](https://minikube.sigs.k8s.io/docs/drivers/qemu/)__ for K8S VM creation
+- :simple-docker: __[docker driver](https://minikube.sigs.k8s.io/docs/drivers/docker/)__ for the K8s node (qemu2/vfkit VM SSH is blocked by the corporate firewall on this host)
 - :simple-lens: __[OpenLens](https://github.com/MuhammedKalkan/OpenLens)__ to interact with K8s
 - :material-security: __[trivy](https://aquasecurity.github.io/trivy)__ for security checks
 </div>
@@ -30,47 +30,28 @@ tfenv use latest
 brew install --cask openlens
 ```
 
-### Qemu Networking
+### Docker-driver networking (tunnel + /etc/hosts)
 !!! info
-    The QEMU driver has two networking options: socket\_vmnet and builtin.
-    socket\_vmnet will give you full minikube networking functionality,
-    such as the service and tunnel commands.
-    *See: [**docs**](https://minikube.sigs.k8s.io/docs/drivers/qemu/#networking)*
+    The cluster runs on the **docker** driver (the qemu2/vfkit VM drivers are blocked by the
+    corporate firewall on this host). On the docker driver the node IP (`192.168.49.2`) is **not**
+    host-routable on macOS — `minikube tunnel` binds the ingress to **`127.0.0.1`** instead.
 
-```shell title="qemu_setup.sh"
-minikube start --driver=qemu --download-only
-brew install socket_vmnet
-brew tap homebrew/services
-HOMEBREW=$(which brew) && sudo ${HOMEBREW} services start socket_vmnet
-```
+To reach `argocd.data` / `airflow.data` from the host, run the tunnel in a real terminal (it needs
+`sudo`) and point the `*.data` hostnames at `127.0.0.1`:
 
-### Configure local network
-Since we take advantage of the ingress add-on, we must configure our local hosts and resolvers
-to enable us to browser our applications using our own local domain.
-
-!!! tip
-    The default configuration exposes all the endpoints into the `*.data` domain.
-    (i.e. argocd.data & airflow.data).
-
-Once the minikube cluster is deployed via terraform, we will obtain its ip with the following command:
-```shell hl_lines="2"
-$ minikube ip -p data
-192.168.105.4
-```
-
-Then, we will provide the new resolver in addition of updating the hosts file.
-
-``` title="/etc/resolver/minikube-data"
-domain data
-nameserver 192.168.105.4
-search_order 1
-timeout 5
+```shell title="tunnel.sh"
+sudo minikube tunnel -p data   # keep running; restart after any cluster recreate
 ```
 
 ``` title="/etc/hosts"
-192.168.105.4 argocd.data
-192.168.105.4 airflow.data
+127.0.0.1 argocd.data airflow.data
 ```
+
+!!! tip
+    The `argocd` Terraform provider also reaches ArgoCD via `argocd.data:443`, so the tunnel must be
+    up for `terraform apply` to manage ArgoCD Applications. The full clean bring-up sequence
+    (two-phase apply + tunnel timing) is documented in
+    [`docs/runbooks/clean-state-bring-up.md`](../../docs/runbooks/clean-state-bring-up.md).
 
 ---
 
