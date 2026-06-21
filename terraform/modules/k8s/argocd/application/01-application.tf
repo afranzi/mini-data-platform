@@ -35,5 +35,21 @@ resource "argocd_application" "apps" {
       server    = var.cluster_name
       namespace = var.namespace
     }
+
+    # Automated reconciliation: ArgoCD syncs the app to the Git desired state on
+    # its own (no manual `argocd app sync` / `kubectl patch operation`). prune
+    # removes resources dropped from Git; self_heal reverts out-of-band drift.
+    sync_policy {
+      dynamic "automated" {
+        for_each = var.automated_sync ? [1] : []
+        content {
+          prune       = true
+          self_heal   = true
+          allow_empty = false
+        }
+      }
+
+      sync_options = var.sync_options
+    }
   }
 }

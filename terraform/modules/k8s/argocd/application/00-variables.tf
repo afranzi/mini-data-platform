@@ -69,3 +69,15 @@ variable "values" {
   default     = null
   description = "Helm values which are passed to the helm template command upon manifest generation"
 }
+
+variable "automated_sync" {
+  type        = bool
+  default     = true
+  description = "Enable ArgoCD automated sync policy (prune + self-heal) so the application self-reconciles to the Git desired state without a manual sync. Set false for apps that must be synced manually."
+}
+
+variable "sync_options" {
+  type        = list(string)
+  default     = ["CreateNamespace=false"]
+  description = "ArgoCD sync options applied to the application sync policy."
+}
