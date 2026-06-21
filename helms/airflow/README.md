@@ -66,7 +66,6 @@ The most important properties when defining our Airflow values are:
 | airflow.config.core.load_examples | string | `"False"` |  |
 | airflow.config.core.max_active_runs_per_dag | int | `1` |  |
 | airflow.config.core.simple_auth_manager_users | string | `"admin:admin"` |  |
-| airflow.config.database.load_default_connections | string | `"False"` |  |
 | airflow.config.logging.remote_logging | string | `"False"` |  |
 | airflow.createUserJob.enabled | bool | `false` |  |
 | airflow.dagProcessor.enabled | bool | `true` |  |
@@ -89,6 +88,7 @@ The most important properties when defining our Airflow values are:
 | airflow.ingress.apiServer.ingressClassName | string | `"nginx"` |  |
 | airflow.ingress.apiServer.path | string | `"/"` |  |
 | airflow.ingress.enabled | bool | `true` |  |
+| airflow.jwtSecretName | string | `"airflow-config-credentials"` |  |
 | airflow.migrateDatabaseJob.applyCustomEnv | bool | `false` |  |
 | airflow.migrateDatabaseJob.enabled | bool | `true` |  |
 | airflow.migrateDatabaseJob.jobAnnotations."argocd.argoproj.io/hook" | string | `"Sync"` |  |

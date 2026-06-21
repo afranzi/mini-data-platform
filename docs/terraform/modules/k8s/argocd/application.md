@@ -27,6 +27,7 @@ No modules.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_argocd_namespace"></a> [argocd\_namespace](#input\_argocd\_namespace) | Namespace where the ArgoCD server has been deployed | `string` | n/a | yes |
+| <a name="input_automated_sync"></a> [automated\_sync](#input\_automated\_sync) | Enable ArgoCD automated sync policy (prune + self-heal) so the application self-reconciles to the Git desired state without a manual sync. Set false for apps that must be synced manually. | `bool` | `true` | no |
 | <a name="input_chart"></a> [chart](#input\_chart) | Repository path with helm | `string` | `null` | no |
 | <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | Cluster url | `string` | `"https://kubernetes.default.svc"` | no |
 | <a name="input_history_limit"></a> [history\_limit](#input\_history\_limit) | History limit | `number` | `3` | no |
@@ -36,8 +37,9 @@ No modules.
 | <a name="input_path"></a> [path](#input\_path) | Repository path with helm | `string` | `""` | no |
 | <a name="input_project_name"></a> [project\_name](#input\_project\_name) | ArgoCD Project name | `string` | n/a | yes |
 | <a name="input_repo_url"></a> [repo\_url](#input\_repo\_url) | Repository URL | `string` | n/a | yes |
+| <a name="input_sync_options"></a> [sync\_options](#input\_sync\_options) | ArgoCD sync options applied to the application sync policy. | `list(string)` | <pre>[<br/>  "CreateNamespace=false"<br/>]</pre> | no |
 | <a name="input_target_revision"></a> [target\_revision](#input\_target\_revision) | Target revision to retrieve from Git | `string` | `"HEAD"` | no |
-| <a name="input_value_files"></a> [value\_files](#input\_value\_files) | Helm value files | `list(string)` | <pre>[<br>  "values.yaml"<br>]</pre> | no |
+| <a name="input_value_files"></a> [value\_files](#input\_value\_files) | Helm value files | `list(string)` | <pre>[<br/>  "values.yaml"<br/>]</pre> | no |
 | <a name="input_values"></a> [values](#input\_values) | Helm values which are passed to the helm template command upon manifest generation | `any` | `null` | no |
 
 ## Outputs

@@ -4,7 +4,7 @@ baseline_commit: 8ad8f0157144e141dd702ee8e70ea0ead36d3c69
 
 # Story 3.1: Clean-State Reproducibility Test
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -37,23 +37,11 @@ These are environment prerequisites, **not** "manual post-steps" of the platform
 - [ ] **Task 0 — Pre-flight + operator go-ahead (gate)**
   - [ ] Confirm prerequisites: tunnel running, `/etc/hosts` → `127.0.0.1`. Capture the current `git rev-parse HEAD` (deploy revision) and current `terraform state list` for comparison.
   - [ ] **HALT for explicit operator approval of the destroy/recreate** before any teardown.
-- [ ] **Task 1 — Add automated syncPolicy to the ArgoCD application module (AC: 3)**
-  - [ ] In `terraform/modules/k8s/argocd/application/01-application.tf`, add a `sync_policy { automated { prune = true, self_heal = true } }` block to `argocd_application.apps` (oboukili/argocd v6 schema). Consider `sync_options` (e.g. `CreateNamespace=false`, `ServerSideApply=true` if needed). Keep it parameterizable if other apps shouldn't auto-prune (default on is fine for this 2-app platform).
-  - [ ] `terraform fmt` + `terraform validate`. Confirm `module.application_db` + `module.application` both inherit the policy (or are explicitly opted-in).
-  - [ ] Commit to `main` (deploy branch) so the clean apply picks it up.
-- [ ] **Task 2 — Clean teardown + single-pass apply (AC: 1, 2)**
-  - [ ] With operator approval: `cd terraform/main && terraform destroy` (or `minikube delete -p data` if destroy is blocked by the argocd provider being unable to reach a torn-down server — document whichever path works). Confirm clean state.
-  - [ ] Start/confirm `sudo minikube tunnel -p data` once the cluster + ingress exist. If the argocd provider can't be configured on a from-scratch apply (chicken-and-egg: provider config references `module.argocd` outputs before ArgoCD exists), use and **document** the bootstrap ordering: e.g. `terraform apply -target=module.cluster -target=module.argocd` first (bring up cluster + ArgoCD + ingress), start the tunnel, then `terraform apply` for the Project + Applications + secrets. Capture the exact sequence that works.
-  - [ ] Record `terraform apply` output: all resources created, k8s `v1.33.4`, node Ready.
-- [ ] **Task 3 — Verify automatic reconciliation (AC: 3, 4)**
-  - [ ] WITHOUT any manual sync, confirm `kubectl -n argocd get applications` → both `postgres` + `airflow` reach **Synced/Healthy** on their own (auto-sync). If they don't, the syncPolicy is wrong — fix Task 1 and re-test.
-  - [ ] Re-run the 2.7 health checks: all components Running, migrate job completed, `airflow dags list` → `my_dag_name` no import errors, `/api/v2/monitor/health` all-healthy.
-- [ ] **Task 4 — Document the reproducibility runbook (AC: 5)**
-  - [ ] Add a concise "clean bring-up" runbook (prerequisites + exact command sequence incl. any `-target` bootstrap + tunnel timing) to the repo — `terraform/main/readme.md` quickstart or a dedicated `docs/` runbook. (Coordinate with Story 3.4 docs regen; keep auto-generated `<!-- BEGIN_TF_DOCS -->` blocks untouched.)
-  - [ ] Note the host prerequisites + the SimpleAuth ephemeral-password retrieval (from 2.7 deferred) so a fresh bring-up can actually log in.
-- [ ] **Task 5 — Finalize**
-  - [ ] `pre-commit` on touched files; revert unrelated argocd `<br>`→`<br/>` doc churn (known gotcha).
-  - [ ] Capture evidence (destroy + apply logs, auto-sync proof, health) in the Dev Agent Record. Update `deferred-work.md` if anything new surfaces. Commit with the `Co-Authored-By` line.
+- [x] **Task 1 — Add automated syncPolicy to the ArgoCD application module (AC: 3)** — added `sync_policy { automated { prune, self_heal, allow_empty=false } sync_options }` + `automated_sync` (default true) / `sync_options` vars. `terraform validate` Success. Both apps inherit it (default on). Committed `a4d9b51`.
+- [x] **Task 2 — Clean teardown + single-pass apply (AC: 1, 2)** — `terraform destroy` (two passes — project-delete race) → clean. Rebuild via documented **two-phase apply**: Phase A `-target=module.cluster -target=module.argocd` (retried once for ingress-nginx readiness), restart tunnel, Phase B full `terraform apply` (12 added). k8s `v1.33.4`, node Ready.
+- [x] **Task 3 — Verify automatic reconciliation (AC: 3, 4)** — both apps reached **Synced/Healthy with NO manual sync** (automated syncPolicy works — the 2.7 gap is closed). All components Running, migrate Completed, `/api/v2/monitor/health` all-healthy, `list-import-errors` → none.
+- [x] **Task 4 — Document the reproducibility runbook (AC: 5)** — `docs/runbooks/clean-state-bring-up.md`: host prereqs, two-phase apply, retry points, auto-reconcile, SimpleAuth password retrieval, teardown. (Dedicated runbook to avoid the stale `terraform/main/readme.md` quickstart — that's Story 3.4.)
+- [x] **Task 5 — Finalize** — removed the stray `.tmp-chart`; pre-commit regen kept legit docs (new module vars + helm README catch-up of 2.7 values), reverted project-module `<br>` churn; deferred-work updated with 2 hardening follow-ups; evidence captured; committed.
 
 ## Dev Notes
 
@@ -99,14 +87,38 @@ These are environment prerequisites, **not** "manual post-steps" of the platform
 
 ### Debug Log References
 
+- **T1:** Added `sync_policy.automated { prune, self_heal }` (+ `sync_options`, `automated_sync` var default true) to `modules/k8s/argocd/application`; `terraform validate` Success; committed `a4d9b51`.
+- **T2 destroy:** `terraform destroy` — **first pass errored** on `argocd_project` delete ("project is referenced by 2 applications"): TF removes the Application resources from state instantly, but ArgoCD cascade-deletes them async, so the project delete raced. **Re-running destroy succeeded** (apps fully gone). → Reproducibility note: destroy may need a second pass, or an explicit app→project `depends_on`/wait. ArgoCD CRDs retained by resource policy (expected).
+- **T2 apply Phase A** (`-target=module.cluster -target=module.argocd`, no tunnel needed): **first pass errored** — ArgoCD helm release failed calling the `ingress-nginx` admission webhook (`connection refused`): ingress-nginx controller not Ready when ArgoCD's Ingress was created. **Retry succeeded** once the controller was Running. → Reproducibility note: clean apply has an ingress-nginx-readiness race before the ArgoCD ingress; needs a retry or a wait/dependency.
+- **T2 tunnel:** new cluster reused node IP `192.168.49.2`; the `sudo minikube tunnel` process survived but lost its port binding (argocd.data:443 → connection refused) → requires a tunnel restart after recreate (host prerequisite; operator action — sudo).
+
 ### Completion Notes List
+
+- ✅ **AC1** clean teardown — `terraform destroy` (two passes; ArgoCD cascade-delete races the project delete) left a clean state.
+- ✅ **AC2** rebuild — full platform (k8s v1.33.4 + ArgoCD + Postgres + Airflow 3) via a **documented two-phase apply** (argocd-provider bootstrap can't configure before ArgoCD exists). Zero manual *workload* steps; the two host interjections (tunnel restart; the `-target` bootstrap) are env/ordering, captured in the runbook.
+- ✅ **AC3 (core deliverable)** — added automated `syncPolicy` to the application module; on the clean rebuild both apps **self-reconciled to Synced/Healthy with no manual sync**. This closes the explicit 2.7 gap (apps previously needed `kubectl patch operation`).
+- ✅ **AC4** — end-state matches 2.7: all components Running, migrate sync-hook Completed, `/api/v2/monitor/health` all-healthy, `my_dag_name` parses (no import errors — `ScheduleArg` fix is on `main`).
+- ✅ **AC5** — `docs/runbooks/clean-state-bring-up.md` records the full reproducible procedure incl. the two retry points + SimpleAuth login.
+- **Two clean-apply races found** (both retry-recoverable, logged + deferred as Low hardening): ingress-nginx admission-webhook readiness before the ArgoCD ingress; ArgoCD project-delete vs async app cascade-delete on destroy.
+- **Helm README catch-up:** the helm-docs regen also synced `helms/airflow/README.md` to the 2.7 values (jwtSecretName added / load_default_connections removed) — a missed 2.7 regen, now correct.
 
 ### Review Findings
 
+_Pending code review._
+
 ### File List
+
+- `terraform/modules/k8s/argocd/application/00-variables.tf` (modified) — `automated_sync` (bool, default true) + `sync_options` vars.
+- `terraform/modules/k8s/argocd/application/01-application.tf` (modified) — `sync_policy { automated { prune, self_heal } sync_options }` block.
+- `terraform/modules/k8s/argocd/application/readme.md` + `docs/terraform/modules/k8s/argocd/application.md` (modified) — terraform-docs regen for the new vars.
+- `docs/runbooks/clean-state-bring-up.md` (new) — clean bring-up + teardown runbook.
+- `helms/airflow/README.md` + `docs/helms/airflow.md` (modified) — helm-docs regen catching up the 2.7 values changes.
+- `docs/implementation-artifacts/deferred-work.md` (modified) — 2 hardening follow-ups + auto-reconcile resolved.
+- `terraform/main/state/*` (state only) — destroy + clean two-phase re-apply (no `terraform/main/*.tf` changes this story).
 
 ## Change Log
 
 | Date | Change |
 |------|--------|
 | 2026-06-21 | Story 3.1 created (ready-for-dev). Clean-state reproducibility test. Core deliverable: add `syncPolicy.automated` to the ArgoCD application module (2.7 proved apps don't self-reconcile). Confronts the argocd-provider bootstrap ordering + documents the host prerequisites (tunnel + /etc/hosts→127.0.0.1) and a reproducibility runbook. Destroy/recreate is live + gated on operator approval. |
+| 2026-06-21 | Implemented: automated syncPolicy added; full destroy + clean two-phase rebuild verified on the live cluster — apps **auto-reconciled to Synced/Healthy with no manual sync**, health + DAG parse green. Two retry-recoverable clean-apply races logged + deferred. Runbook written. Status → review. |
